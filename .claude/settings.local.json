@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:leadverse.ai)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(npm install:*)",
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Bash(npm --version)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:$PATH\")",
+      "Bash(brew services:*)",
+      "Bash(mongosh --eval \"db.adminCommand\\(''''ping''''\\)\")",
+      "Bash(/usr/local/bin/node /opt/homebrew/bin/mongosh --eval \"db.adminCommand\\(''''ping''''\\)\")",
+      "Bash(xargs kill:*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/register -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"Test User\"\"\"\",\"\"\"\"email\"\"\"\":\"\"\"\"test@leadradar.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"LeadRadar123!\"\"\"\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"test@leadradar.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"Test123!\"\"\"\"}')",
+      "Bash(jq . __NEW_LINE_267a36dd2b686db5__ curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"test@leadradar.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"LeadRadar123!\"\"\"\"}')",
+      "Bash(jq . __NEW_LINE_267a36dd2b686db5__ curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"test@leadradar.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"password123\"\"\"\"}')",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDYwZmU3NDgxNjU2ZWNkNWM2ZjViZSIsImlhdCI6MTc3NTY0MzgwOCwiZXhwIjoxNzc2MjQ4NjA4fQ.ZtmJmBxvXcU48QK5gCN_YO18RgJqsUgwYsYLei_AFGk\" CAMP_ID=\"69d62ce4481656ecd5c6f6da\" KW2_ID=\"69d62ce4481656ecd5c6f6e2\" __NEW_LINE_1ca73dc31f904128__ echo \"=== Check KW2 current state ===\" curl -s \"http://localhost:3000/api/keywords\" -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDYwZmU3NDgxNjU2ZWNkNWM2ZjViZSIsImlhdCI6MTc3NTY0MzgwOCwiZXhwIjoxNzc2MjQ4NjA4fQ.ZtmJmBxvXcU48QK5gCN_YO18RgJqsUgwYsYLei_AFGk\" CAMP_ID=\"69d62ce4481656ecd5c6f6da\" __NEW_LINE_d0989eed8be9f577__ echo \"=== Create keyword with campaignId \\(nodemon should have hot-reloaded\\) ===\" curl -s -X POST http://localhost:3000/api/keywords -H \"Content-Type: application/json\" -H \"Authorization: Bearer $TOKEN\" -d \"{\"\"keyword\"\":\"\"crm for small business\"\",\"\"campaignId\"\":\"\"$CAMP_ID\"\"}\")",
+      "Bash(/usr/local/bin/npm install:*)",
+      "Bash(/opt/homebrew/bin/npm install:*)",
+      "Bash(PATH=\"/Users/vasanthakumar/.nvm/versions/node/v18.19.0/bin:$PATH\" npm install stripe --save)",
+      "Bash(export PATH=\"$PATH:/usr/local/bin:/opt/homebrew/bin\")",
+      "Bash(export PATH=\"$PATH:/usr/local/bin\")",
+      "Bash(node -e \":*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(ngrok version:*)",
+      "Bash(brew install:*)",
+      "Bash(curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc)"
+    ]
+  }
+}

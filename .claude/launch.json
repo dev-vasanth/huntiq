@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "client",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd '/Users/vasanthakumar/Documents/new ai app/client' && /usr/local/bin/node node_modules/.bin/vite --port 5174 --strictPort"],
+      "port": 5173
+    }
+  ]
+}
