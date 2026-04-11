@@ -710,16 +710,6 @@ export default function Settings() {
             </div>
             <p className="text-xs" style={{ color: '#334155' }}>Public Reddit API for scanning posts. Runs every 15 minutes.</p>
           </div>
-          <div className="p-4 rounded-xl" style={{ background: '#0d0d1a', border: '1px solid #1a1a2e' }}>
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-medium text-white text-sm">Anthropic Claude AI</div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
-                Configure in .env
-              </span>
-            </div>
-            <p className="text-xs" style={{ color: '#334155' }}>Powers AI reply drafting and digest summaries. Set <code style={{ color: '#f97316' }}>ANTHROPIC_API_KEY</code> in server/.env</p>
-          </div>
         </div>
       </Section>
     </div>

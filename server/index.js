@@ -14,6 +14,8 @@ import redditRoutes from './routes/reddit.js';
 import billingRoutes, { handleWebhook } from './routes/billing.js';
 import alertRoutes from './routes/alerts.js';
 import conversationRoutes from './routes/conversations.js';
+import contactRoutes from './routes/contact.js';
+import featureRequestRoutes from './routes/featureRequests.js';
 import { startScheduler } from './services/schedulerService.js';
 
 dotenv.config();
@@ -42,6 +44,8 @@ app.use('/api/reddit', redditRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/conversations', conversationRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/feature-requests', featureRequestRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

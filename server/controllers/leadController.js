@@ -73,6 +73,37 @@ export const deleteLead = async (req, res) => {
   }
 };
 
+export const testScan = async (req, res) => {
+  try {
+    const { fetchRedditPosts } = await import('../services/redditService.js');
+    const keywords = await Keyword.find({ userId: req.user._id, isActive: true });
+    if (!keywords.length) {
+      return res.status(400).json({ message: 'No active keywords to scan' });
+    }
+
+    const results = [];
+    for (const kw of keywords.slice(0, 3)) {
+      const posts = await fetchRedditPosts(kw.keyword, kw.subreddits || []);
+      results.push({
+        keyword: kw.keyword,
+        subreddits: kw.subreddits,
+        rawPostsReturned: posts.length,
+        posts: posts.slice(0, 5).map(p => ({
+          title: p.title,
+          subreddit: p.subreddit,
+          upvotes: p.ups,
+          url: `https://reddit.com${p.permalink}`,
+          titleContainsKeyword: p.title.toLowerCase().includes(kw.keyword.toLowerCase()),
+        })),
+      });
+    }
+
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const scanNow = async (req, res) => {
   try {
     const keywords = await Keyword.find({ userId: req.user._id, isActive: true });

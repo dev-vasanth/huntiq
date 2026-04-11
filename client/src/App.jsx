@@ -19,6 +19,9 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Contact from './pages/Contact';
+import FeatureRequests from './pages/FeatureRequests';
+import Admin from './pages/Admin';
 
 export default function App() {
   return (
@@ -35,6 +38,7 @@ export default function App() {
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/contact" element={<Contact />} />
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -44,6 +48,8 @@ export default function App() {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/feature-requests" element={<FeatureRequests />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

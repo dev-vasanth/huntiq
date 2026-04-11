@@ -56,9 +56,9 @@ function calculateIntentScore(post, detectedSignals) {
   return Math.min(Math.round(score), 100);
 }
 
-async function fetchRedditPosts(query, subreddits = []) {
+export async function fetchRedditPosts(query, subreddits = []) {
   const headers = {
-    'User-Agent': 'LeadRadar/1.0 (by /u/leadradar)',
+    'User-Agent': 'HuntIQ/1.0 (by /u/huntiq)',
   };
 
   const results = [];
@@ -110,9 +110,28 @@ export async function scanKeyword(keyword, userId) {
       if (exists) continue;
 
       const text = `${post.title} ${post.selftext || ''}`;
+
+      const keywordLower = keyword.keyword.toLowerCase();
+      const titleLower = post.title.toLowerCase();
+      const textLower = text.toLowerCase();
+      const keywordWords = keywordLower.split(' ').filter(w => w.length > 2);
+
       const detectedSignals = detectIntentSignals(text);
       const intentScore = calculateIntentScore(post, detectedSignals);
       const sentiment = analyzeSentiment(text);
+
+      // Relevance: keyword appears in title/body OR post has strong intent signals
+      const titlePhraseMatch = titleLower.includes(keywordLower);
+      const bodyPhraseMatch = textLower.includes(keywordLower);
+      const titleWordMatch = keywordWords.length > 0 &&
+        keywordWords.every(w => titleLower.includes(w));
+      const hasStrongIntent = detectedSignals.length >= 2;
+
+      const isRelevant = titlePhraseMatch || bodyPhraseMatch || titleWordMatch || hasStrongIntent;
+      if (!isRelevant) continue;
+
+      // Require at least one intent signal — engagement alone is not enough
+      if (detectedSignals.length === 0 || intentScore < 20) continue;
 
       const lead = await Lead.create({
         userId,

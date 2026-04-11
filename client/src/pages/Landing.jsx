@@ -393,7 +393,7 @@ export default function Landing() {
           <div className="flex items-center gap-5">
             <Link to="/privacy" className="text-sm transition-colors" style={{ color: '#334155' }}>Privacy</Link>
             <Link to="/terms" className="text-sm transition-colors" style={{ color: '#334155' }}>Terms</Link>
-            <a href="mailto:hello@huntiq.io" className="text-sm transition-colors" style={{ color: '#334155' }}>Contact</a>
+            <Link to="/contact" className="text-sm transition-colors" style={{ color: '#334155' }}>Contact</Link>
           </div>
         </div>
       </footer>

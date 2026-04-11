@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Tag, Trash2, ToggleLeft, ToggleRight, X, AlertCircle, CheckCircle2, Megaphone, ChevronDown, Crosshair } from 'lucide-react';
+import { Plus, Tag, Trash2, ToggleLeft, ToggleRight, X, AlertCircle, CheckCircle2, Megaphone, ChevronDown, Crosshair, Sparkles, Lock } from 'lucide-react';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 
 const POPULAR_SUBREDDITS = [
@@ -71,6 +72,8 @@ function CampaignDropdown({ keyword, campaigns, onAssign }) {
 }
 
 function KeywordForm({ onAdd, campaigns }) {
+  const { user } = useAuth();
+  const isPro = user?.plan === 'pro';
   const [keyword, setKeyword] = useState('');
   const [subreddits, setSubreddits] = useState([]);
   const [subInput, setSubInput] = useState('');
@@ -80,11 +83,27 @@ function KeywordForm({ onAdd, campaigns }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
 
   const addSub = () => {
     const s = subInput.trim().replace(/^r\//, '');
     if (s && !subreddits.includes(s)) setSubreddits(prev => [...prev, s]);
     setSubInput('');
+  };
+
+  const handleSuggest = async () => {
+    if (!keyword.trim() || !isPro) return;
+    setSuggesting(true);
+    setAiSuggestions([]);
+    try {
+      const res = await api.post('/keywords/suggest-subreddits', { keyword: keyword.trim() });
+      setAiSuggestions(res.data.subreddits || []);
+    } catch (err) {
+      console.error('Suggest failed', err);
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -185,9 +204,49 @@ function KeywordForm({ onAdd, campaigns }) {
 
             {/* Subreddits */}
             <div>
-              <label className="text-xs font-medium text-slate-400 mb-2 block">
-                Monitor specific subreddits <span className="text-slate-600">(leave empty for all of Reddit)</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-slate-400">
+                  Monitor specific subreddits <span className="text-slate-600">(leave empty for all of Reddit)</span>
+                </label>
+                {isPro ? (
+                  <button
+                    type="button"
+                    onClick={handleSuggest}
+                    disabled={suggesting || !keyword.trim()}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg transition-all disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(249,115,22,0.15))', border: '1px solid rgba(168,85,247,0.3)', color: '#a855f7' }}>
+                    <Sparkles size={11} className={suggesting ? 'animate-pulse' : ''} />
+                    {suggesting ? 'Suggesting...' : 'AI Suggest'}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg cursor-not-allowed"
+                    style={{ background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.2)', color: '#475569' }}
+                    title="Upgrade to Pro to use AI subreddit suggestions">
+                    <Lock size={11} />
+                    AI Suggest — Pro
+                  </div>
+                )}
+              </div>
+
+              {/* AI Suggestions */}
+              {aiSuggestions.length > 0 && (
+                <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                  <p className="text-xs mb-2 flex items-center gap-1" style={{ color: '#a855f7' }}>
+                    <Sparkles size={11} /> AI suggested for "{keyword}"
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {aiSuggestions.map(s => (
+                      <button key={s} type="button"
+                        onClick={() => !subreddits.includes(s) && setSubreddits(p => [...p, s])}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-all ${subreddits.includes(s) ? 'bg-violet-500/20 border-violet-500/30 text-violet-300' : 'border-violet-500/30 text-violet-400 hover:bg-violet-500/10'}`}
+                        style={{ background: subreddits.includes(s) ? undefined : 'rgba(168,85,247,0.05)' }}>
+                        {subreddits.includes(s) ? '✓ ' : '+ '}r/{s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2 mb-2">
                 <div className="relative flex-1">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">r/</span>
@@ -212,7 +271,7 @@ function KeywordForm({ onAdd, campaigns }) {
                 ))}
               </div>
               <div className="flex flex-wrap gap-1">
-                {POPULAR_SUBREDDITS.map(s => (
+                {POPULAR_SUBREDDITS.filter(s => !aiSuggestions.includes(s)).map(s => (
                   <button key={s} type="button"
                     onClick={() => !subreddits.includes(s) && setSubreddits(p => [...p, s])}
                     className={`text-xs px-2 py-0.5 rounded-full border transition-all ${subreddits.includes(s) ? 'bg-violet-500/20 border-violet-500/30 text-violet-300' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:border-slate-500'}`}>

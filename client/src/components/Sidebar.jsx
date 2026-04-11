@@ -1,15 +1,18 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Inbox, Tag, BarChart2, Settings, LogOut, Megaphone, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Inbox, Tag, BarChart2, Settings, LogOut, Megaphone, MessageCircle, Lightbulb, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const FOUNDER_EMAIL = 'vasanthbscit2016@gmail.com';
+
 const NAV = [
-  { to: '/dashboard',     icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/leads',         icon: Inbox,           label: 'Leads' },
-  { to: '/campaigns',     icon: Megaphone,        label: 'Campaigns' },
-  { to: '/conversations', icon: MessageCircle,    label: 'Conversations' },
-  { to: '/keywords',      icon: Tag,             label: 'Keywords' },
-  { to: '/analytics',     icon: BarChart2,       label: 'Analytics' },
-  { to: '/settings',      icon: Settings,        label: 'Settings' },
+  { to: '/dashboard',          icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/leads',              icon: Inbox,           label: 'Leads' },
+  { to: '/campaigns',          icon: Megaphone,       label: 'Campaigns' },
+  { to: '/conversations',      icon: MessageCircle,   label: 'Conversations' },
+  { to: '/keywords',           icon: Tag,             label: 'Keywords' },
+  { to: '/analytics',          icon: BarChart2,       label: 'Analytics' },
+  { to: '/feature-requests',   icon: Lightbulb,       label: 'Feature Requests' },
+  { to: '/settings',           icon: Settings,        label: 'Settings' },
 ];
 
 export default function Sidebar() {
@@ -47,6 +50,13 @@ export default function Sidebar() {
             {label}
           </NavLink>
         ))}
+        {user?.email === FOUNDER_EMAIL && (
+          <NavLink to="/admin"
+            className={({ isActive }) => `nav-item ${isActive ? 'nav-active' : ''}`}>
+            <ShieldCheck size={16} />
+            Admin
+          </NavLink>
+        )}
       </nav>
 
       {/* User section */}
