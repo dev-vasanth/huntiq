@@ -53,7 +53,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lead-radar')
   .then(() => {
     console.log('MongoDB connected');
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
       startScheduler();
     });
