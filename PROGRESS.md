@@ -12,8 +12,10 @@
 
 ## Business Details
 - **Pricing:** $19 Starter / $29 Pro launch price (was $49, raised after 50 users) — 7-day free trial
-- **Payment:** Stripe (Checkout Sessions + Customer Portal + Webhooks) — TEST MODE active
+- **Payment:** Dodo Payments (switched from Stripe → Lemon Squeezy → Razorpay → Dodo Payments)
+- **Why Dodo:** Indian founder + global customers (USD) — Stripe hard to set up in India, Razorpay only supports INR subscriptions, Lemon Squeezy requires PAN
 - **Email:** Resend via Nodemailer SMTP (`noreply@huntiq.io`) — DNS verified ✅
+- **Business email:** `hello@huntiq.io` → forwards to `vasanthbscit2016@gmail.com` (BigRock email forwarding)
 - **Target Users:** Founders, marketers, SaaS builders finding leads on Reddit
 
 ### Plan Limits (server/config/plans.js — single source of truth)
@@ -45,7 +47,7 @@
 8. **Real-Time Lead Alerts** — email alerts on high-intent leads, 30min throttle, threshold slider
 9. **Daily Digest Emails** — scheduled 8AM UTC, branded HuntIQ HTML email
 10. **Conversations** — track DMs sent, monitor replies hourly, performance stats
-11. **Billing** — Stripe $19/$29 plans, 7-day trial, Customer Portal, webhooks
+11. **Billing** — Dodo Payments $19/$29 plans, 7-day trial, Customer Portal, webhooks
 12. **Reddit OAuth** — connect Reddit account, post comments, send DMs from app (Pro only)
 13. **Plan Limits** — middleware enforces keyword/campaign/reply limits per plan
 14. **Usage Tracking** — monthly usage bars in Settings, resets monthly
@@ -85,13 +87,43 @@
 
 ---
 
+## 🚀 Deployment Status
+
+### Done ✅
+- [x] Frontend deployed to **Vercel** → `huntiq.io` live ✅
+- [x] Backend deployed to **Railway** → `huntiq-production.up.railway.app`
+- [x] `api.huntiq.io` subdomain setup (CNAME → Railway) — DNS propagating
+- [x] `huntiq.io` A record → Vercel (216.198.79.1) ✅
+- [x] `vercel.json` at repo root with SPA rewrites ✅
+- [x] `railway.toml` with build + start commands ✅
+- [x] Server binds to `0.0.0.0` for Railway ✅
+- [x] MongoDB Atlas connected ✅
+- [x] Resend email configured + huntiq.io DNS verified ✅
+
+### Pending ❌
+- [ ] Confirm `api.huntiq.io` is live → test `https://api.huntiq.io/api/health`
+- [ ] Update Railway Variables: `CLIENT_URL=https://huntiq.io`, `SERVER_URL=https://api.huntiq.io`
+- [ ] Update Vercel env var: `VITE_API_URL=https://api.huntiq.io/api` → redeploy
+- [ ] Update Reddit OAuth redirect URI → `https://api.huntiq.io/api/reddit/callback`
+- [ ] **Sign up on Dodo Payments** (dodopayments.com) → connect Indian bank account
+- [ ] Create 2 products on Dodo: HuntIQ Starter ($19/mo) + HuntIQ Pro ($29/mo) with 7-day trial
+- [ ] Add Dodo env vars to Railway (see below)
+- [ ] Add Dodo webhook → `https://api.huntiq.io/api/billing/webhook`
+- [ ] Run DB migration: `db.users.updateMany({ isVerified: { $exists: false } }, { $set: { isVerified: true } })`
+- [ ] Smoke test full flow (register → verify → checkout → scan → export)
+
+---
+
 ## 📁 Project File Structure
 
 ```
 /server
   index.js                    — main entry, mounts all routes
+  railway.toml                — Railway build/start config (repo root)
+  vercel.json                 — Vercel SPA rewrites + build config (repo root)
   /models
-    User.js                   — plan, subscription, usage, alertSettings, passwordReset
+    User.js                   — plan, subscription (dodoCustomerId/dodoSubscriptionId),
+                                usage, alertSettings, passwordReset,
                                 isVerified, emailVerifyToken, emailVerifyExpires
     Lead.js                   — keywordType (own/competitor), intentScore, sentiment
     Keyword.js                — type (own/competitor), campaignId, isActive
@@ -106,7 +138,7 @@
     keywords.js               — CRUD, toggle, type update, suggest-subreddits (Pro)
     campaigns.js              — CRUD, keyword assignment
     reddit.js                 — OAuth, comment, message (auto-creates Conversation)
-    billing.js                — status, checkout, portal, webhook
+    billing.js                — status, checkout, portal, webhook (Dodo Payments)
     alerts.js                 — settings GET/PUT, test POST
     conversations.js          — list, stats, create, close, delete, refresh
     analytics.js              — overview, leads-over-time, keywords, subreddits, sentiment, signals, competitor
@@ -125,7 +157,9 @@
     auth.js                   — JWT verification
     planLimits.js             — checkKeywordLimit, checkCampaignLimit, checkReplyLimit
   /config
-    plans.js                  — PLANS object with limits for starter/pro
+    plans.js                  — PLANS object with limits for starter/pro (uses dodoProductId getter)
+  /scripts
+    createRazorpayPlans.js    — unused (kept for reference), was for Razorpay USD plan creation
 
 /client/src
   App.jsx                     — all routes incl. /contact, /feature-requests, /admin
@@ -136,13 +170,13 @@
     ForgotPassword.jsx        — HuntIQ branded
     ResetPassword.jsx         — HuntIQ branded
     VerifyEmail.jsx           — check inbox state + auto-verify on token
-    Checkout.jsx              — correct prices ($19/$29), correct feature copy
+    Checkout.jsx              — "Secured by Dodo Payments" trust badge
     Dashboard.jsx             — Today/Top Scoring tabs, Reply Rate stat, weekly trend chart
     Leads.jsx                 — list with filters + Export CSV button
     Keywords.jsx              — own/competitor toggle, AI Suggest (Pro), campaign dropdown
     Campaigns.jsx             — campaign cards, ManageKeywordsModal
     Analytics.jsx             — Overview tab + Competitor Intel tab
-    Settings.jsx              — BillingSection, AlertsSection, Reddit, Profile, Security, Digest
+    Settings.jsx              — BillingSection (no Anthropic Claude AI card), AlertsSection, Reddit, Profile, Security, Digest
     Conversations.jsx         — DM tracking, stats, thread view, status filters
     PrivacyPolicy.jsx         — /privacy
     TermsOfService.jsx        — /terms
@@ -164,72 +198,53 @@
 
 ---
 
-## ⚙️ Environment Variables (server/.env)
+## ⚙️ Environment Variables
 
+### Railway (server) — set in Railway Variables dashboard
 ```env
 PORT=3000
-MONGODB_URI=mongodb+srv://...  ✅ Atlas connected
-JWT_SECRET=...                 ✅ 64-char hex set
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=...
 
-ANTHROPIC_API_KEY=sk-ant-...   ✅ Set and working
+ANTHROPIC_API_KEY=sk-ant-...
 
-REDDIT_CLIENT_ID=...           ✅ Added
-REDDIT_CLIENT_SECRET=...       ✅ Added
-SERVER_URL=https://xxx.ngrok-free.app   (update to Railway URL for production)
+REDDIT_CLIENT_ID=...
+REDDIT_CLIENT_SECRET=...
+SERVER_URL=https://api.huntiq.io
+CLIENT_URL=https://huntiq.io
 
-EMAIL_HOST=smtp.resend.com     ✅
-EMAIL_PORT=465                 ✅
-EMAIL_USER=resend              ✅
-EMAIL_PASS=re_xxx              ✅
-EMAIL_FROM=HuntIQ <noreply@huntiq.io>  ✅
+EMAIL_HOST=smtp.resend.com
+EMAIL_PORT=465
+EMAIL_USER=resend
+EMAIL_PASS=re_xxx
+EMAIL_FROM=HuntIQ <noreply@huntiq.io>
 
-CLIENT_URL=http://localhost:5173  (update to https://huntiq.io for production)
+FOUNDER_EMAIL=vasanthbscit2016@gmail.com
 
-STRIPE_SECRET_KEY=sk_test_...  ✅ Test mode
-STRIPE_PUBLISHABLE_KEY=pk_test_... ✅ Test mode
-STRIPE_WEBHOOK_SECRET=whsec_...   ✅ Test mode
-STRIPE_PRICE_STARTER=price_... ✅ Test mode ($19)
-STRIPE_PRICE_PRO=price_...     ✅ Test mode ($29)
+# Dodo Payments (to be added after signup)
+DODO_API_KEY=...
+DODO_WEBHOOK_SECRET=...
+DODO_ENVIRONMENT=live_mode
+DODO_BUSINESS_ID=...            ← from Dodo dashboard
+DODO_PRODUCT_STARTER=pdt_...    ← product ID for $19 plan
+DODO_PRODUCT_PRO=pdt_...        ← product ID for $29 plan
+```
 
-FOUNDER_EMAIL=vasanthbscit2016@gmail.com  ✅
+### Vercel (client)
+```env
+VITE_API_URL=https://api.huntiq.io/api
+```
 
-# Client (client/.env)
+### Local dev (server/.env)
+```env
+PORT=3000
 VITE_API_URL=http://localhost:3000/api
+# ... same as Railway but with localhost URLs
 ```
 
 ---
 
-## 🚀 Go-Live Checklist
-
-### Done ✅
-- [x] MongoDB Atlas URL connected
-- [x] Resend email configured + huntiq.io domain DNS verified
-- [x] Reddit OAuth credentials added + redirect URI updated
-- [x] Stripe test mode fully configured (keys + price IDs + webhook)
-- [x] Full rebrand to HuntIQ
-- [x] Favicon + page title + og tags
-- [x] Privacy Policy + Terms of Service pages
-- [x] Email verification on signup
-- [x] CSV export
-- [x] Onboarding wizard
-- [x] Pricing aligned ($19/$29, server + landing + checkout all match)
-- [x] ANTHROPIC_API_KEY set
-- [x] JWT_SECRET set (64-char hex)
-- [x] FOUNDER_EMAIL set
-
-### Pending ❌
-- [ ] Deploy backend to **Railway** + set all env vars
-- [ ] Deploy frontend to **Vercel** + set `VITE_API_URL`
-- [ ] Set `CLIENT_URL=https://huntiq.io` + `SERVER_URL=https://your-app.railway.app` on Railway
-- [ ] Update Reddit OAuth redirect URI to Railway URL
-- [ ] Switch Stripe to **live mode** (new keys + new price IDs)
-- [ ] Add Stripe webhook pointing to Railway URL
-- [ ] Run DB migration for existing users: `db.users.updateMany({ isVerified: { $exists: false } }, { $set: { isVerified: true } })`
-- [ ] Smoke test full flow (register → verify → checkout → scan → export)
-
----
-
-## 🛒 Infrastructure Decisions
+## 🛒 Infrastructure
 
 | Service | Provider | Cost |
 |---|---|---|
@@ -238,16 +253,16 @@ VITE_API_URL=http://localhost:3000/api
 | Backend | Railway | $5/mo |
 | Database | MongoDB Atlas | Free |
 | Email sending | Resend | Free (3k/mo) |
-| Email inbox | Forward to Gmail | Free |
+| Email inbox | hello@huntiq.io → Gmail forward | Free |
 | SSL | Auto (Vercel + Railway) | Free |
-| Payments | Stripe | 2.9% + 30¢ |
+| Payments | Dodo Payments | ~3% + 30¢ |
 
 ---
 
 ## 🔑 Key Technical Decisions
 
 - **ESM modules** throughout server (import/export not require)
-- **Stripe lazy init** via Proxy pattern to fix ESM dotenv timing issue
+- **Lazy init pattern** — Dodo client reads env at request time (fixes ESM dotenv timing)
 - **Password reset tokens** — raw token in email, SHA-256 hash stored in DB
 - **Email verify tokens** — same pattern as password reset, 24hr expiry
 - **Competitor leads** — keywordType field on both Keyword and Lead models
@@ -256,12 +271,15 @@ VITE_API_URL=http://localhost:3000/api
 - **Scheduler** — 15min Reddit scan, hourly inbox check, 8AM daily digest
 - **CSV export** — server-side generation, respects all active filters, 5000 row cap
 - **Onboarding** — tracked via localStorage key `huntiq_onboarded`, not DB
-- **Pro price** — $29 launch price (update plans.js + Stripe price ID when raising to $49)
+- **Pro price** — $29 launch price (update plans.js + Dodo product ID when raising to $49)
 - **AI models** — generateReply: claude-sonnet-4-6, analyzeLeadBatch + digestSummary: claude-haiku-4-5-20251001
 - **AI Subreddit Suggest** — Pro only, POST /api/keywords/suggest-subreddits, Claude Haiku
 - **Reddit scan quality** — unquoted search + relevance check (keyword in title/body OR 2+ intent signals) + min score 20
 - **Admin access** — checked by FOUNDER_EMAIL env var on backend, user.email check on frontend
 - **Test account** — testuser@huntiq.io / Test@1234 (Starter plan, verified)
+- **Dodo webhook** — uses Standard Webhooks spec (webhook-id, webhook-signature, webhook-timestamp headers)
+- **api.huntiq.io** → Railway backend; **huntiq.io** → Vercel frontend
+- **dodopayments npm package** v2.27.0 used for SDK
 
 ---
 
@@ -272,4 +290,4 @@ Start a new session and say:
 
 ---
 
-*Last updated: Session covering — Dashboard improvements (Today/Top tabs, Reply Rate, weekly trend), AI subreddit suggestions (Pro feature), Reddit scan quality fixes (relevance check, intent threshold, quoted search investigation), Contact Us form, Feature Requests page, Admin view for founder, Contact link in landing footer, model switch (Opus→Sonnet for replies, Haiku for scoring/digest)*
+*Last updated: Session covering — Deployment (Railway + Vercel), huntiq.io live on Vercel, api.huntiq.io subdomain for Railway backend, billing switched from Stripe → Dodo Payments (Indian founder + global USD subscriptions), dodopayments npm package v2.27.0, User model updated to dodoCustomerId/dodoSubscriptionId/dodoProductId, plans.js uses dodoProductId getter, Checkout.jsx updated to "Secured by Dodo Payments", removed Anthropic Claude AI card from Settings Integrations*

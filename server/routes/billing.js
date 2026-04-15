@@ -1,5 +1,5 @@
 import express from 'express';
-import Stripe from 'stripe';
+import DodoPayments from 'dodopayments';
 import auth from '../middleware/auth.js';
 import User from '../models/User.js';
 import { PLANS, getPlanLimits } from '../config/plans.js';
@@ -8,28 +8,29 @@ import Campaign from '../models/Campaign.js';
 
 const router = express.Router();
 
-// Lazy Stripe init — dotenv runs before any request hits, so this is safe
-let _stripe;
-const getStripe = () => {
-  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  return _stripe;
+// Lazy Dodo init — reads env at request time
+let _dodo;
+const getDodo = () => {
+  if (!_dodo) {
+    _dodo = new DodoPayments({
+      bearerToken: process.env.DODO_API_KEY,
+      environment: process.env.DODO_ENVIRONMENT || 'live_mode',
+    });
+  }
+  return _dodo;
 };
-const stripe = new Proxy({}, { get: (_, prop) => getStripe()[prop] });
 
 // ─── GET /api/billing/status ────────────────────────────────────────────────
-// Returns plan, subscription status, trial info, and usage
 router.get('/status', auth, async (req, res) => {
   try {
     const user   = req.user;
     const limits = getPlanLimits(user.plan);
 
-    // Count current usage from DB (keywords / campaigns are real-time)
     const [kwCount, campCount] = await Promise.all([
       Keyword.countDocuments({ userId: user._id }),
       Campaign.countDocuments({ userId: user._id }),
     ]);
 
-    // Calculate trial days remaining
     let trialDaysLeft = null;
     if (user.subscription?.status === 'trialing' && user.subscription?.trialEndsAt) {
       const diff = new Date(user.subscription.trialEndsAt) - new Date();
@@ -44,11 +45,11 @@ router.get('/status', auth, async (req, res) => {
       trialDaysLeft,
       limits,
       usage: {
-        keywords:        kwCount,
-        campaigns:       campCount,
-        leadsThisMonth:  user.usage?.leadsThisMonth  || 0,
+        keywords:         kwCount,
+        campaigns:        campCount,
+        leadsThisMonth:   user.usage?.leadsThisMonth  || 0,
         repliesThisMonth: user.usage?.repliesThisMonth || 0,
-        resetAt:         user.usage?.resetAt || null,
+        resetAt:          user.usage?.resetAt || null,
       },
     });
   } catch (err) {
@@ -57,143 +58,145 @@ router.get('/status', auth, async (req, res) => {
 });
 
 // ─── POST /api/billing/checkout ─────────────────────────────────────────────
-// Creates a Stripe Checkout session with 7-day trial
 router.post('/checkout', auth, async (req, res) => {
   try {
     const { plan } = req.body;
     if (!PLANS[plan]) return res.status(400).json({ message: 'Invalid plan' });
 
-    const priceId = PLANS[plan].stripePriceId;
-    if (!priceId) return res.status(400).json({ message: `Stripe price ID for "${plan}" not configured. Add STRIPE_PRICE_${plan.toUpperCase()} to .env` });
+    const productId = PLANS[plan].dodoProductId;
+    if (!productId) return res.status(400).json({ message: `Dodo product ID for "${plan}" not configured. Add DODO_PRODUCT_${plan.toUpperCase()} to .env` });
 
     const user = req.user;
 
-    // Create or reuse Stripe customer
-    let customerId = user.subscription?.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
+    const session = await getDodo().checkoutSessions.create({
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      customer: {
         email: user.email,
         name:  user.name,
-        metadata: { userId: user._id.toString() },
-      });
-      customerId = customer.id;
-      await User.findByIdAndUpdate(user._id, { 'subscription.stripeCustomerId': customerId });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      customer:            customerId,
-      payment_method_types: ['card'],
-      mode:                'subscription',
-      line_items: [{
-        price:    priceId,
-        quantity: 1,
-      }],
+      },
       subscription_data: {
         trial_period_days: 7,
-        metadata: { userId: user._id.toString(), plan },
+        metadata: {
+          user_id: user._id.toString(),
+          plan,
+        },
       },
-      success_url: `${process.env.CLIENT_URL}/settings?billing=success&plan=${plan}`,
-      cancel_url:  `${process.env.CLIENT_URL}/checkout?canceled=1`,
-      metadata: { userId: user._id.toString(), plan },
+      metadata: {
+        user_id: user._id.toString(),
+        plan,
+      },
+      return_url: `${process.env.CLIENT_URL}/settings?billing=success&plan=${plan}`,
     });
 
-    res.json({ url: session.url });
+    res.json({ url: session.checkout_url || session.url });
   } catch (err) {
-    console.error('Stripe checkout error:', err);
-    res.status(500).json({ message: err.message });
+    console.error('Dodo checkout error:', err);
+    res.status(500).json({ message: err?.message || 'Checkout failed' });
   }
 });
 
 // ─── GET /api/billing/portal ─────────────────────────────────────────────────
-// Opens Stripe Customer Portal for managing subscription / card
 router.get('/portal', auth, async (req, res) => {
   try {
-    const customerId = req.user.subscription?.stripeCustomerId;
-    if (!customerId) return res.status(400).json({ message: 'No billing account found. Please subscribe first.' });
+    const customerId = req.user.subscription?.dodoCustomerId;
+    if (!customerId) return res.status(400).json({ message: 'No active subscription found. Please subscribe first.' });
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer:   customerId,
-      return_url: `${process.env.CLIENT_URL}/settings?billing=portal_return`,
-    });
-
-    res.json({ url: session.url });
+    const session = await getDodo().customers.customerPortal.create(customerId);
+    res.json({ url: session.link });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Dodo portal error:', err);
+    // Fallback to static portal URL
+    const businessId = process.env.DODO_BUSINESS_ID;
+    const env        = process.env.DODO_ENVIRONMENT || 'live_mode';
+    const base       = env === 'test_mode' ? 'https://test.customer.dodopayments.com' : 'https://customer.dodopayments.com';
+    res.json({ url: `${base}/login/${businessId}` });
   }
 });
 
 // ─── POST /api/billing/webhook ───────────────────────────────────────────────
-// Handles Stripe events — MUST use raw body (mounted separately in index.js)
+// Dodo uses Standard Webhooks spec — MUST use raw body
 export const handleWebhook = async (req, res) => {
-  const sig     = req.headers['stripe-signature'];
-  const secret  = process.env.STRIPE_WEBHOOK_SECRET;
-
-  let event;
+  let payload;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, secret);
+    payload = await getDodo().webhooks.unwrap(
+      req.body,
+      {
+        'webhook-id':        req.headers['webhook-id'],
+        'webhook-signature': req.headers['webhook-signature'],
+        'webhook-timestamp': req.headers['webhook-timestamp'],
+      },
+      process.env.DODO_WEBHOOK_SECRET
+    );
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('Dodo webhook verification failed:', err.message);
+    return res.status(401).send('Invalid signature');
   }
 
+  const eventType = payload.type;
+  const data      = payload.data;
+  const userId    = data?.metadata?.user_id || data?.subscription_data?.metadata?.user_id;
+  const plan      = data?.metadata?.plan     || data?.subscription_data?.metadata?.plan || 'starter';
+
+  console.log(`Dodo Webhook: ${eventType} for user ${userId}`);
+
   try {
-    const data = event.data.object;
-
-    switch (event.type) {
-      // Trial started / subscription created
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const userId = data.metadata?.userId;
+    switch (eventType) {
+      case 'subscription.created':
+      case 'subscription.active': {
         if (!userId) break;
-
-        const plan = data.metadata?.plan || 'starter';
         await User.findByIdAndUpdate(userId, {
           plan,
-          'subscription.stripeSubscriptionId': data.id,
-          'subscription.stripePriceId':        data.items.data[0]?.price?.id,
-          'subscription.status':               data.status,
-          'subscription.trialEndsAt':          data.trial_end ? new Date(data.trial_end * 1000) : null,
-          'subscription.currentPeriodEnd':     new Date(data.current_period_end * 1000),
+          'subscription.dodoSubscriptionId': data.subscription_id,
+          'subscription.dodoCustomerId':     data.customer?.customer_id,
+          'subscription.dodoProductId':      data.product_id,
+          'subscription.status':             'trialing',
+          'subscription.trialEndsAt':        data.trial_period_days
+            ? new Date(Date.now() + data.trial_period_days * 24 * 60 * 60 * 1000) : null,
+          'subscription.currentPeriodEnd':   data.next_billing_date
+            ? new Date(data.next_billing_date) : null,
         });
-        console.log(`Subscription ${event.type} for user ${userId}: ${data.status}`);
         break;
       }
 
-      // Payment succeeded → ensure active
-      case 'invoice.payment_succeeded': {
-        const subId = data.subscription;
-        if (!subId) break;
-        const sub = await stripe.subscriptions.retrieve(subId);
-        const userId = sub.metadata?.userId;
+      case 'subscription.renewed': {
         if (!userId) break;
         await User.findByIdAndUpdate(userId, {
+          plan,
           'subscription.status':           'active',
-          'subscription.currentPeriodEnd': new Date(sub.current_period_end * 1000),
+          'subscription.trialEndsAt':      null,
+          'subscription.currentPeriodEnd': data.next_billing_date
+            ? new Date(data.next_billing_date) : null,
         });
         break;
       }
 
-      // Payment failed → mark past_due
-      case 'invoice.payment_failed': {
-        const subId = data.subscription;
-        if (!subId) break;
-        const sub = await stripe.subscriptions.retrieve(subId);
-        const userId = sub.metadata?.userId;
+      case 'subscription.on_hold': {
         if (!userId) break;
         await User.findByIdAndUpdate(userId, { 'subscription.status': 'past_due' });
-        console.log(`Payment failed for user ${userId}`);
         break;
       }
 
-      // Subscription canceled → downgrade to starter / none
-      case 'customer.subscription.deleted': {
-        const userId = data.metadata?.userId;
+      case 'subscription.cancelled':
+      case 'subscription.failed':
+      case 'subscription.expired': {
         if (!userId) break;
         await User.findByIdAndUpdate(userId, {
           plan: 'starter',
-          'subscription.status':               'canceled',
-          'subscription.stripeSubscriptionId': null,
+          'subscription.status':             'canceled',
+          'subscription.dodoSubscriptionId': null,
         });
+        break;
+      }
+
+      case 'payment.succeeded': {
+        if (!userId) break;
+        await User.findByIdAndUpdate(userId, { 'subscription.status': 'active' });
+        break;
+      }
+
+      case 'payment.failed': {
+        if (!userId) break;
+        await User.findByIdAndUpdate(userId, { 'subscription.status': 'past_due' });
         break;
       }
     }

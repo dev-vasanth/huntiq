@@ -23,7 +23,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ── Stripe webhook MUST receive raw body ─────────────────────────────────────
+// ── Lemon Squeezy webhook MUST receive raw body for signature verification ────
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 app.use(cors({

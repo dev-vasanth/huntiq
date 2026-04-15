@@ -58,7 +58,7 @@ export default function Checkout() {
     setLoading(true);
     try {
       const res = await api.post('/billing/checkout', { plan: planKey });
-      window.location.href = res.data.url; // redirect to Stripe Checkout
+      window.location.href = res.data.url; // redirect to Lemon Squeezy Checkout
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to start checkout. Please try again.');
       setLoading(false);
@@ -159,7 +159,7 @@ export default function Checkout() {
           disabled={loading}
           className="btn-primary w-full py-4 text-base flex items-center justify-center gap-2 mb-4">
           {loading
-            ? <><Loader2 size={18} className="animate-spin" /> Redirecting to Stripe...</>
+            ? <><Loader2 size={18} className="animate-spin" /> Redirecting to checkout...</>
             : <><ArrowRight size={18} /> Start Free Trial — ${plan.price}/mo after 7 days</>
           }
         </button>
@@ -177,7 +177,7 @@ export default function Checkout() {
         {/* Trust badges */}
         <div className="flex items-center justify-center gap-6 mt-8">
           {[
-            { icon: Shield, text: 'Secured by Stripe' },
+            { icon: Shield, text: 'Secured by Razorpay' },
             { icon: X, text: 'Cancel anytime' },
             { icon: CheckCircle, text: '7-day free trial' },
           ].map(({ icon: Icon, text }) => (

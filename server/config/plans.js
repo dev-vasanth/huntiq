@@ -3,7 +3,7 @@ export const PLANS = {
   starter: {
     name: 'Starter',
     price: 19,
-    get stripePriceId() { return process.env.STRIPE_PRICE_STARTER; },
+    get dodoProductId() { return process.env.DODO_PRODUCT_STARTER; },
     limits: {
       keywords:        5,
       leadsPerMonth:   500,
@@ -19,7 +19,7 @@ export const PLANS = {
   pro: {
     name: 'Pro',
     price: 29,
-    get stripePriceId() { return process.env.STRIPE_PRICE_PRO; },
+    get dodoProductId() { return process.env.DODO_PRODUCT_PRO; },
     limits: {
       keywords:        25,
       leadsPerMonth:   2000,

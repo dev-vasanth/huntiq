@@ -32,7 +32,26 @@
       "Bash(curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc)",
       "WebFetch(domain:www.reddit.com)",
       "WebSearch",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "WebFetch(domain:docs.dodopayments.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:supastarter.dev)",
+      "WebFetch(domain:better-auth.com)",
+      "Bash(npm show:*)",
+      "Bash(npm list:*)",
+      "Bash(npm start:*)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"testuser@huntiq.io\",\"password\":\"Test@1234\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:3000/api/billing/checkout -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGEzZWNjNGI3YTdiM2YyY2VkMWNjNCIsImlhdCI6MTc3NjEzMzA2MiwiZXhwIjoxNzc2NzM3ODYyfQ.pHh3JunyyOaP23eqi5Mk55XaGrwIvup_atEElmHL5IM' -d '{\"plan\":\"starter\"}')",
+      "Bash(pkill -f \"node index.js\")",
+      "Read(//private/tmp/**)",
+      "Bash(curl -s http://localhost:4040/api/tunnels)",
+      "Bash(curl -s https://api.huntiq.io/api/health)"
     ]
   }
 }

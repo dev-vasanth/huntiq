@@ -8,9 +8,9 @@ const userSchema = new mongoose.Schema({
   plan: { type: String, enum: ['starter', 'pro'], default: 'starter' },
 
   subscription: {
-    stripeCustomerId:     { type: String },
-    stripeSubscriptionId: { type: String },
-    stripePriceId:        { type: String },
+    dodoCustomerId:     { type: String },
+    dodoSubscriptionId: { type: String },
+    dodoProductId:      { type: String },
     status: {
       type: String,
       enum: ['trialing', 'active', 'past_due', 'canceled', 'incomplete', 'none'],
