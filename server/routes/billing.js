@@ -142,7 +142,8 @@ export const handleWebhook = async (req, res) => {
   try {
     switch (eventType) {
       case 'subscription.created':
-      case 'subscription.active': {
+      case 'subscription.active':
+      case 'subscription.updated': {
         if (!userId) break;
         await User.findByIdAndUpdate(userId, {
           plan,
