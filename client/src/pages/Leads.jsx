@@ -56,7 +56,7 @@ export default function Leads() {
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
   useEffect(() => {
-    api.get('/campaigns').then(res => setCampaigns(res.data.campaigns || [])).catch(() => {});
+    api.get('/campaigns').then(res => setCampaigns(res.data || [])).catch(() => {});
   }, []);
 
   const setFilter = (key, value) => setFilters(f => ({ ...f, [key]: value, page: key === 'page' ? value : 1 }));
