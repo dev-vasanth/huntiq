@@ -31,10 +31,11 @@ export default function Leads() {
   const [scanning, setScanning] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [scanMsg, setScanMsg] = useState('');
+  const [campaigns, setCampaigns] = useState([]);
 
   const [filters, setFilters] = useState({
     status: 'all', keyword: '', sortBy: 'intentScore',
-    sortOrder: 'desc', minScore: 0, page: 1, keywordType: '',
+    sortOrder: 'desc', minScore: 0, page: 1, keywordType: '', campaignId: '',
   });
   const [exporting, setExporting] = useState(false);
 
@@ -54,6 +55,10 @@ export default function Leads() {
 
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
+  useEffect(() => {
+    api.get('/campaigns').then(res => setCampaigns(res.data.campaigns || [])).catch(() => {});
+  }, []);
+
   const setFilter = (key, value) => setFilters(f => ({ ...f, [key]: value, page: key === 'page' ? value : 1 }));
 
   const handleStatus = async (id, status) => {
@@ -69,6 +74,7 @@ export default function Leads() {
         keyword: filters.keyword,
         minScore: filters.minScore,
         keywordType: filters.keywordType,
+        campaignId: filters.campaignId,
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
       };
@@ -168,6 +174,16 @@ export default function Leads() {
             <option value="">All Types</option>
             <option value="own">Own Brand</option>
             <option value="competitor">Competitor</option>
+          </select>
+
+          <select
+            value={filters.campaignId}
+            onChange={e => setFilter('campaignId', e.target.value)}
+            className="input w-44 text-sm">
+            <option value="">All Campaigns</option>
+            {campaigns.map(c => (
+              <option key={c._id} value={c._id}>{c.name}</option>
+            ))}
           </select>
 
           <select

@@ -6,7 +6,7 @@ export const getLeads = async (req, res) => {
   try {
     const {
       page = 1, limit = 20, status, keyword, subreddit,
-      sortBy = 'createdAt', sortOrder = 'desc', minScore = 0, keywordType, since
+      sortBy = 'createdAt', sortOrder = 'desc', minScore = 0, keywordType, since, campaignId
     } = req.query;
 
     const filter = { userId: req.user._id };
@@ -16,6 +16,10 @@ export const getLeads = async (req, res) => {
     if (parseInt(minScore) > 0) filter.intentScore = { $gte: parseInt(minScore) };
     if (keywordType && (keywordType === 'own' || keywordType === 'competitor')) filter.keywordType = keywordType;
     if (since) filter.createdAt = { $gte: new Date(since) };
+    if (campaignId) {
+      const campaignKeywords = await Keyword.find({ userId: req.user._id, campaignId }).select('_id');
+      filter.keywordId = { $in: campaignKeywords.map(k => k._id) };
+    }
 
     const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
     const skip = (parseInt(page) - 1) * parseInt(limit);
