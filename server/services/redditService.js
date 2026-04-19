@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Lead from '../models/Lead.js';
 import Keyword from '../models/Keyword.js';
+import Campaign from '../models/Campaign.js';
 import { checkAndSendAlerts } from './alertService.js';
 
 // ── B2B Intent Signals ─────────────────────────────────────────────────────
@@ -259,9 +260,25 @@ export async function scanAllUsers() {
   try {
     const User = (await import('../models/User.js')).default;
     const users = await User.find({});
+
     for (const user of users) {
+      // Get active campaigns for this user
+      const activeCampaigns = await Campaign.find({ userId: user._id, status: 'active' }).select('_id');
+      const activeCampaignIds = activeCampaigns.map(c => c._id.toString());
+
+      // Only scan keywords that are:
+      // 1. Active (isActive: true)
+      // 2. Either not assigned to any campaign OR assigned to an active campaign
       const keywords = await Keyword.find({ userId: user._id, isActive: true });
-      for (const kw of keywords) {
+
+      const eligibleKeywords = keywords.filter(kw => {
+        if (!kw.campaignId) return true; // No campaign assigned — always scan
+        return activeCampaignIds.includes(kw.campaignId.toString()); // Only scan if campaign is active
+      });
+
+      console.log(`[Scan] User ${user._id}: ${eligibleKeywords.length}/${keywords.length} keywords eligible (campaign filter applied)`);
+
+      for (const kw of eligibleKeywords) {
         await scanKeyword(kw, user._id);
         await new Promise(r => setTimeout(r, 1000)); // Rate limiting
       }
