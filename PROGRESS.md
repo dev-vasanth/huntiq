@@ -2,23 +2,23 @@
 
 ## Project Overview
 **Name:** HuntIQ (`huntiq.io`)
-**Type:** Reddit Lead Intelligence SaaS
+**Type:** Multi-Platform Lead Intelligence SaaS (Reddit + Hacker News + more coming)
 **Stack:** MongoDB + Express (ESM) + React 18/Vite + Node.js
 **Location:** `/Users/vasanthakumar/Documents/new ai app/`
-**Domain:** huntiq.io (BigRock — not Namecheap)
+**GitHub:** `https://github.com/dev-vasanth/huntiq` (branch: `main`)
+**Domain:** huntiq.io (BigRock)
 **Founder email:** vasanthbscit2016@gmail.com
 
 ---
 
 ## Business Details
-- **Pricing:** $19 Starter / $29 Pro launch price (was $49, raised after 50 users) — 7-day free trial
-- **Payment:** Dodo Payments (switched from Stripe → Lemon Squeezy → Razorpay → Dodo Payments)
-- **Why Dodo:** Indian founder + global customers (USD) — Stripe hard to set up in India, Razorpay only supports INR subscriptions, Lemon Squeezy requires PAN
+- **Pricing:** $19 Starter / $29 Pro launch price — 7-day free trial
+- **Payment:** Dodo Payments (dodopayments npm v2.27.0)
 - **Email:** Resend via Nodemailer SMTP (`noreply@huntiq.io`) — DNS verified ✅
-- **Business email:** `hello@huntiq.io` → forwards to `vasanthbscit2016@gmail.com` (BigRock email forwarding)
-- **Target Users:** Founders, marketers, SaaS builders finding leads on Reddit
+- **Business email:** `hello@huntiq.io` → forwards to `vasanthbscit2016@gmail.com`
+- **Target Users:** SaaS founders, marketers finding leads on Reddit & HN
 
-### Plan Limits (server/config/plans.js — single source of truth)
+### Plan Limits (`server/config/plans.js` — single source of truth)
 | Feature | Starter ($19) | Pro ($29 launch → $49) |
 |---|---|---|
 | Keywords | 5 | 25 |
@@ -31,255 +31,233 @@
 | Competitor Tracking | ✅ | ✅ |
 | AI Subreddit Suggestions | ❌ | ✅ |
 
-**Note:** Starter replies are "copy & paste" only (no direct Reddit posting). Pro gets direct post + DM from app.
-
 ---
 
 ## ✅ Features Built (Complete)
 
+### Core
 1. **Reddit Scanning** — scans Reddit every 15 min, intent scoring, stores leads
-2. **Lead Management** — save, dismiss, reply, filter by status/score/type
-3. **AI Reply Drafting** — Claude Sonnet 4.6, tone selector, manual fallback
-4. **Campaigns** — group keywords, track campaign stats, manage keywords modal
-5. **Keywords** — own/competitor types, campaign assignment, subreddit targeting
-6. **Competitor Tracking** — mark keywords as competitor, leads tagged with keywordType
-7. **Analytics** — Overview tab + Competitor Intel tab (sentiment, pain points, subreddits)
-8. **Real-Time Lead Alerts** — email alerts on high-intent leads, 30min throttle, threshold slider
-9. **Daily Digest Emails** — scheduled 8AM UTC, branded HuntIQ HTML email
-10. **Conversations** — track DMs sent, monitor replies hourly, performance stats
-11. **Billing** — Dodo Payments $19/$29 plans, 7-day trial, Customer Portal, webhooks
-12. **Reddit OAuth** — connect Reddit account, post comments, send DMs from app (Pro only)
-13. **Plan Limits** — middleware enforces keyword/campaign/reply limits per plan
-14. **Usage Tracking** — monthly usage bars in Settings, resets monthly
-15. **Forgot Password / Reset** — secure token (SHA-256 hashed), 1hr expiry, branded email
-16. **Alert Settings UI** — toggle, email, threshold slider, send test button
-17. **Competitor Toggle** — keywords page has own/competitor badge, type selector in form
-18. **Lead Type Filter** — leads page has All/Own/Competitor dropdown filter
-19. **LeadCard Competitor Badge** — red "Competitor" badge on leads from competitor keywords
-20. **ReplyModal Reddit Actions** — Post Comment + Send PM buttons when Reddit connected (Pro)
-21. **Settings Page** — Billing, Reddit OAuth, Profile, Security, Digest, Alerts, Integrations
-22. **Onboarding Wizard** — 3-step modal for first-time users (keyword → type → scan), skip option, stored in localStorage (`huntiq_onboarded`)
-23. **Email Verification** — on signup, verify email before accessing app, resend with 60s cooldown, SHA-256 token
-24. **CSV Export** — export leads with current filters applied, all fields, capped at 5000 rows, auto-download
-25. **Full Rebrand** — LeadRadar → HuntIQ across all files, favicon SVG (crosshair gradient), page title, og tags
-26. **Privacy Policy** — `/privacy` page, 11 sections, linked from footer
-27. **Terms of Service** — `/terms` page, 14 sections, linked from footer
-28. **Dashboard Improvements** — Today/Top Scoring tab toggle, Reply Rate stat, weekly trend bar chart, 5 stat cards
-29. **AI Subreddit Suggestions** — Pro only, "AI Suggest" button in keyword form calls Claude Haiku, returns 5-7 relevant subreddits as clickable tags; Starter sees lock icon
-30. **Reddit Scan Quality Fixes** — relevance check (keyword in title/body OR 2+ intent signals), min intent score 20, User-Agent updated to HuntIQ, `since` date filter added to leads API
-31. **Contact Us** — `/contact` public page, stores in DB + emails founder, linked from landing footer
-32. **Feature Requests** — `/feature-requests` in sidebar (all users), category picker, stores in DB + emails founder
-33. **Admin View** — `/admin` page, only visible for founder email (`vasanthbscit2016@gmail.com`), two tabs: Contact Submissions & Feature Requests, status dropdowns, expand to read
+2. **Hacker News Scanning** — scans HN Algolia API every 30 min (stories + comments), same pipeline
+3. **Lead Management** — save, dismiss, reply, filter by status/score/type/source/campaign
+4. **AI Reply Drafting** — Claude Sonnet 4.6, tone selector, manual fallback
+5. **Campaigns** — group keywords, track stats, paused campaigns skip scanning
+6. **Keywords** — own/competitor types, campaign assignment, subreddit targeting
+7. **Competitor Tracking** — mark keywords as competitor, leads tagged with keywordType
+8. **Analytics** — Overview + Competitor Intel tabs
+9. **Real-Time Lead Alerts** — email alerts on high-intent leads, 30min throttle
+10. **Daily Digest Emails** — 8AM UTC, branded HTML email
+11. **Conversations** — track DMs sent, monitor replies hourly
+12. **Billing** — Dodo Payments $19/$29 plans, 7-day trial, Customer Portal, webhooks
+13. **Reddit OAuth** — connect Reddit, post comments, send DMs (Pro only)
+14. **Plan Limits** — middleware enforces keyword/campaign/reply limits
+15. **Usage Tracking** — monthly usage bars in Settings, resets monthly
+16. **Forgot Password / Reset** — secure SHA-256 token, 1hr expiry
+17. **Email Verification** — on signup, verify before accessing app
+18. **CSV Export** — export leads with active filters, all fields, 5000 row cap
+19. **Onboarding Wizard** — 3-step modal for first-time users
+20. **Admin Panel** — `/admin` page, founder-only, contact + feature request tabs
+21. **Contact / Feature Requests** — public + auth pages, stored in DB + email to founder
+22. **AI Subreddit Suggestions** — Pro only, Claude Haiku, 5-7 relevant subreddits
+23. **Campaign Filter on Leads page** — filter leads by campaign dropdown
+
+### Lead Quality (done this session)
+24. **isValidConversation() gate** — blocks AutoModerator, stickied/mod posts, deleted content, link posts with no discussion, self posts with no body/question
+25. **Noise filter** — AITAH, TIFU, relationship drama, memes blocked
+26. **Removed "or " and "vs " signals** — were firing on 67% of posts (pure noise)
+27. **Raised min score 25 → 40, min signals 1 → 2**
+28. **Removed bodyWordMatch** — body requires full phrase match, not word-by-word (was matching Minecraft/hockey posts for "monitor subreddit")
+29. **Campaign status filter in scan** — paused/completed campaign keywords skipped
+30. **Keyword cleanup** — deleted 4 bad generic keywords, added subreddit restrictions to all 17 remaining
+31. **postType field** — 'discussion' / 'link' / 'comment' stored and shown in UI
+32. **Source badge on LeadCard** — orange Y for HN (Ask HN / Show HN), violet r/ for Reddit
+33. **Source filter on Leads page** — All Sources / Reddit / Hacker News dropdown
+34. **MongoDB index fix** — dropped old `{userId, redditId}` unique index, kept `{userId, source, redditId}`, backfilled `source: 'reddit'` on existing leads
+
+### Landing Page (updated this session)
+35. **Multi-platform messaging** — removed all Reddit-only references, now mentions Reddit + HN
+36. **Mockup updated** — shows Ask HN lead alongside Reddit leads
+37. **Stats updated** — "2+ Platforms Monitored" instead of "15min scan interval"
 
 ---
 
-## 🔄 Features Still To Build (Priority Order)
+## 🔄 Next To Build (Priority Order)
 
-### 1. Reply Templates
-- Save commonly used reply messages
-- Select template in ReplyModal
-- CRUD templates in Settings
+### 🔴 High Priority
+1. **Quora as 3rd source** ← NEXT TO BUILD
+   - Scrape Quora search results for keywords (no official API, use SerpAPI free tier or direct scraping)
+   - Map to same lead pipeline (title, body, author, score, signals)
+   - Add `source: 'quora'` to Lead model enum
+   - Show green "Quora" badge on LeadCard
+   - Add "Quora" option to source filter dropdown
+   - File to create: `server/services/quoraService.js`
+   - Scrape URL pattern: `https://www.quora.com/search?q=KEYWORD&type=question`
+   - Or use SerpAPI: `https://serpapi.com/search.json?engine=quora&q=KEYWORD` (100 free searches/mo)
 
-### 2. Sidebar Unread Badges
-- Show count of new leads since last visit
-- Store lastVisitedAt on user
-- Fetch unread count on app load
+2. **Reply Templates**
+   - Save commonly used reply messages
+   - Select template in ReplyModal
+   - CRUD templates in Settings
+
+3. **Weekly Email Digest**
+   - Monday morning: "You have X new leads this week, Y are high intent"
+   - Keeps users active without logging in
+
+### 🟡 Medium Priority
+4. **Slack Alerts** — push 70+ score leads to Slack channel instantly
+5. **Score Explanation** — show why a post scored X/100 (keyword in title +20, 3 signals +24, etc.)
+6. **Free Public Tool** — "Enter keyword → see live Reddit + HN posts" — no signup needed, drives organic signups
+
+### 🟢 Growth
+7. **Product Hunt Relaunch** — stronger story now with multi-platform monitoring
 
 ---
 
 ## 🚀 Deployment Status
 
-### Done ✅
-- [x] Frontend deployed to **Vercel** → `huntiq.io` live ✅
-- [x] Backend deployed to **Railway** → `huntiq-production.up.railway.app`
-- [x] `api.huntiq.io` subdomain setup (CNAME → Railway) — DNS propagating
-- [x] `huntiq.io` A record → Vercel (216.198.79.1) ✅
-- [x] `vercel.json` at repo root with SPA rewrites ✅
-- [x] `railway.toml` with build + start commands ✅
-- [x] Server binds to `0.0.0.0` for Railway ✅
-- [x] MongoDB Atlas connected ✅
-- [x] Resend email configured + huntiq.io DNS verified ✅
+### Live ✅
+- Frontend → **Vercel** → `huntiq.io`
+- Backend → **Railway** → `huntiq-production.up.railway.app`
+- `api.huntiq.io` → CNAME → Railway ✅
+- MongoDB Atlas connected ✅
+- Resend email DNS verified ✅
+- Dodo Payments → test mode working, live mode on Railway
 
-### Pending ❌
-- [ ] Confirm `api.huntiq.io` is live → test `https://api.huntiq.io/api/health`
-- [ ] Update Railway Variables: `CLIENT_URL=https://huntiq.io`, `SERVER_URL=https://api.huntiq.io`
-- [ ] Update Vercel env var: `VITE_API_URL=https://api.huntiq.io/api` → redeploy
-- [ ] Update Reddit OAuth redirect URI → `https://api.huntiq.io/api/reddit/callback`
-- [ ] **Sign up on Dodo Payments** (dodopayments.com) → connect Indian bank account
-- [ ] Create 2 products on Dodo: HuntIQ Starter ($19/mo) + HuntIQ Pro ($29/mo) with 7-day trial
-- [ ] Add Dodo env vars to Railway (see below)
-- [ ] Add Dodo webhook → `https://api.huntiq.io/api/billing/webhook`
-- [ ] Run DB migration: `db.users.updateMany({ isVerified: { $exists: false } }, { $set: { isVerified: true } })`
-- [ ] Smoke test full flow (register → verify → checkout → scan → export)
-
----
-
-## 📁 Project File Structure
-
-```
-/server
-  index.js                    — main entry, mounts all routes
-  railway.toml                — Railway build/start config (repo root)
-  vercel.json                 — Vercel SPA rewrites + build config (repo root)
-  /models
-    User.js                   — plan, subscription (dodoCustomerId/dodoSubscriptionId),
-                                usage, alertSettings, passwordReset,
-                                isVerified, emailVerifyToken, emailVerifyExpires
-    Lead.js                   — keywordType (own/competitor), intentScore, sentiment
-    Keyword.js                — type (own/competitor), campaignId, isActive
-    Campaign.js               — name, color, userId
-    Conversation.js           — redditUsername, ourMessage, replies[], status, responseTimeMs
-    ContactSubmission.js      — name, email, subject, message, status (new/read/replied)
-    FeatureRequest.js         — userId, title, description, category, status
-  /routes
-    auth.js                   — register, login, forgot-password, reset-password,
-                                verify-email/:token, resend-verification
-    leads.js                  — CRUD, scan, scan/test, keywordType filter, export, since filter
-    keywords.js               — CRUD, toggle, type update, suggest-subreddits (Pro)
-    campaigns.js              — CRUD, keyword assignment
-    reddit.js                 — OAuth, comment, message (auto-creates Conversation)
-    billing.js                — status, checkout, portal, webhook (Dodo Payments)
-    alerts.js                 — settings GET/PUT, test POST
-    conversations.js          — list, stats, create, close, delete, refresh
-    analytics.js              — overview, leads-over-time, keywords, subreddits, sentiment, signals, competitor
-    replies.js                — generate AI, manual, mark sent
-    digest.js                 — settings, test
-    contact.js                — POST (public), GET/PATCH (founder only)
-    featureRequests.js        — POST (auth), GET/PATCH (founder only)
-  /services
-    redditService.js          — scanKeyword, scanAllUsers, fetchRedditPosts (exported)
-    alertService.js           — sendLeadAlert, checkAndSendAlerts
-    emailService.js           — sendAllDailyDigests, sendDigestEmail (HuntIQ branded)
-    aiService.js              — generateReply (Sonnet 4.6), analyzeLeadBatch (Haiku), generateDigestSummary (Haiku)
-    conversationService.js    — checkConversationsForUser, checkAllUsersConversations
-    schedulerService.js       — 15min scan, hourly inbox check, 8AM digest
-  /middleware
-    auth.js                   — JWT verification
-    planLimits.js             — checkKeywordLimit, checkCampaignLimit, checkReplyLimit
-  /config
-    plans.js                  — PLANS object with limits for starter/pro (uses dodoProductId getter)
-  /scripts
-    createRazorpayPlans.js    — unused (kept for reference), was for Razorpay USD plan creation
-
-/client/src
-  App.jsx                     — all routes incl. /contact, /feature-requests, /admin
-  /pages
-    Landing.jsx               — pricing ($19 Starter / $29 Pro), Contact link in footer
-    Login.jsx                 — HuntIQ branded
-    Register.jsx              — redirects to /verify-email after signup
-    ForgotPassword.jsx        — HuntIQ branded
-    ResetPassword.jsx         — HuntIQ branded
-    VerifyEmail.jsx           — check inbox state + auto-verify on token
-    Checkout.jsx              — "Secured by Dodo Payments" trust badge
-    Dashboard.jsx             — Today/Top Scoring tabs, Reply Rate stat, weekly trend chart
-    Leads.jsx                 — list with filters + Export CSV button
-    Keywords.jsx              — own/competitor toggle, AI Suggest (Pro), campaign dropdown
-    Campaigns.jsx             — campaign cards, ManageKeywordsModal
-    Analytics.jsx             — Overview tab + Competitor Intel tab
-    Settings.jsx              — BillingSection (no Anthropic Claude AI card), AlertsSection, Reddit, Profile, Security, Digest
-    Conversations.jsx         — DM tracking, stats, thread view, status filters
-    PrivacyPolicy.jsx         — /privacy
-    TermsOfService.jsx        — /terms
-    Contact.jsx               — /contact (public), name/email/subject/message form
-    FeatureRequests.jsx       — /feature-requests (auth), category picker + form
-    Admin.jsx                 — /admin (founder only), contact + feature request tabs
-  /components
-    Sidebar.jsx               — Feature Requests link, Admin link (founder only)
-    LeadCard.jsx              — competitor badge, intent badge, sentiment dot
-    ReplyModal.jsx            — AI/manual tabs, Post Comment, Send PM (Pro only)
-    OnboardingWizard.jsx      — 3-step overlay modal for new users
-    UpgradeBanner.jsx         — orange banner for limit reached
-    StatsCard.jsx             — reusable stat display card
-    ProtectedRoute.jsx        — blocks unverified users → /verify-email
-
-/client/public
-    favicon.svg               — HuntIQ crosshair icon, orange→purple gradient
-```
-
----
-
-## ⚙️ Environment Variables
-
-### Railway (server) — set in Railway Variables dashboard
+### Railway Environment Variables (already set)
 ```env
 PORT=3000
-MONGODB_URI=mongodb+srv://...
+MONGODB_URI=mongodb+srv://huntiq_admin:huntiq_2026@cluster0.97duklf.mongodb.net/...
 JWT_SECRET=...
-
 ANTHROPIC_API_KEY=sk-ant-...
-
 REDDIT_CLIENT_ID=...
 REDDIT_CLIENT_SECRET=...
 SERVER_URL=https://api.huntiq.io
 CLIENT_URL=https://huntiq.io
-
 EMAIL_HOST=smtp.resend.com
 EMAIL_PORT=465
 EMAIL_USER=resend
 EMAIL_PASS=re_xxx
 EMAIL_FROM=HuntIQ <noreply@huntiq.io>
-
 FOUNDER_EMAIL=vasanthbscit2016@gmail.com
-
-# Dodo Payments (to be added after signup)
 DODO_API_KEY=...
 DODO_WEBHOOK_SECRET=...
 DODO_ENVIRONMENT=live_mode
-DODO_BUSINESS_ID=...            ← from Dodo dashboard
-DODO_PRODUCT_STARTER=pdt_...    ← product ID for $19 plan
-DODO_PRODUCT_PRO=pdt_...        ← product ID for $29 plan
+DODO_BUSINESS_ID=bus_0NceDZODkGjz7FhhPHqmp
+DODO_PRODUCT_STARTER=pdt_0NceDvB4kiffW4sWY1qC2
+DODO_PRODUCT_PRO=pdt_0NceE7xac7FpjlL2tSvSJ
 ```
 
-### Vercel (client)
+### Vercel Environment Variables
 ```env
 VITE_API_URL=https://api.huntiq.io/api
 ```
 
-### Local dev (server/.env)
-```env
-PORT=3000
-VITE_API_URL=http://localhost:3000/api
-# ... same as Railway but with localhost URLs
+---
+
+## 📁 Key File Structure
+
+```
+/server
+  index.js                    — main entry, mounts all routes
+  /models
+    User.js                   — plan, subscription, usage, alertSettings, passwordReset, isVerified
+    Lead.js                   — source (reddit|hackernews), postType, hasBody, keywordType, intentScore
+    Keyword.js                — type (own/competitor), campaignId, isActive, subreddits[]
+    Campaign.js               — name, color, userId, status (active/paused/completed)
+    Conversation.js           — redditUsername, ourMessage, replies[], status
+    ContactSubmission.js      — name, email, subject, message, status
+    FeatureRequest.js         — userId, title, description, category, status
+  /routes
+    auth.js                   — register, login, forgot-password, reset-password, verify-email
+    leads.js                  — CRUD, scan (Reddit+HN), export, source/campaign/keyword filters
+    keywords.js               — CRUD, toggle, suggest-subreddits (Pro)
+    campaigns.js              — CRUD, keyword assignment
+    reddit.js                 — OAuth, comment, message
+    billing.js                — status, checkout, portal, webhook (Dodo Payments)
+    alerts.js, conversations.js, analytics.js, replies.js, digest.js
+    contact.js, featureRequests.js
+  /services
+    redditService.js          — scanKeyword, scanAllUsers, fetchRedditPosts
+                                exports: analyzeSentiment, detectIntentSignals, isNoise, ALL_INTENT_SIGNALS
+    hnService.js              — scanKeywordHN, scanAllUsersHN, fetchHNPosts
+                                imports shared utils from redditService.js
+    alertService.js           — sendLeadAlert, checkAndSendAlerts
+    emailService.js           — sendAllDailyDigests, sendDigestEmail
+    aiService.js              — generateReply (Sonnet 4.6), analyzeLeadBatch (Haiku)
+    conversationService.js    — checkConversationsForUser, checkAllUsersConversations
+    schedulerService.js       — 15min Reddit scan, 30min HN scan (offset 5min), hourly inbox, 8AM digest
+  /middleware
+    auth.js, planLimits.js
+  /config
+    plans.js                  — PLANS object, limits, dodoProductId getter
+
+/client/src
+  App.jsx                     — all routes
+  /pages
+    Landing.jsx               — multi-platform messaging (Reddit + HN), updated mockup + stats
+    Leads.jsx                 — source filter (All/Reddit/HN), campaign filter
+    Dashboard.jsx, Keywords.jsx, Campaigns.jsx, Analytics.jsx
+    Settings.jsx, Conversations.jsx, Admin.jsx
+    Contact.jsx, FeatureRequests.jsx
+    Login.jsx, Register.jsx, ForgotPassword.jsx, ResetPassword.jsx, VerifyEmail.jsx
+    PrivacyPolicy.jsx, TermsOfService.jsx, Checkout.jsx
+  /components
+    LeadCard.jsx              — SourceBadge (HN orange Y / Reddit violet r/), postType pill
+    Sidebar.jsx               — Admin link (founder email only)
+    ReplyModal.jsx, OnboardingWizard.jsx, UpgradeBanner.jsx, StatsCard.jsx, ProtectedRoute.jsx
 ```
 
 ---
 
-## 🛒 Infrastructure
+## 🔑 Lead Quality Pipeline (current)
 
-| Service | Provider | Cost |
-|---|---|---|
-| Domain | BigRock — huntiq.io | ~$35/yr |
-| Frontend | Vercel | Free |
-| Backend | Railway | $5/mo |
-| Database | MongoDB Atlas | Free |
-| Email sending | Resend | Free (3k/mo) |
-| Email inbox | hello@huntiq.io → Gmail forward | Free |
-| SSL | Auto (Vercel + Railway) | Free |
-| Payments | Dodo Payments | ~3% + 30¢ |
+Every post scanned goes through these gates IN ORDER:
+
+```
+1. isValidConversation()
+   ✗ AutoModerator / [deleted] author → skip
+   ✗ Stickied or mod post → skip
+   ✗ selftext = [deleted] or [removed] → skip
+   ✗ score < -5 → skip
+   ✗ link post with < 2 comments → skip
+   ✗ self post with no body AND no question/request in title → skip
+
+2. isNoise()
+   ✗ AITAH, TIFU, relationship drama, memes → skip
+
+3. Relevance check
+   ✓ Full keyword phrase in title → pass
+   ✓ Full keyword phrase in body → pass
+   ✓ All meaningful words (>3 chars) in title → pass
+   ✗ Otherwise → skip
+
+4. Signal check
+   ✗ Fewer than 2 intent signals → skip
+
+5. Score check
+   ✗ intentScore < 40 → skip
+
+6. ✅ Store as Lead
+```
+
+**Active keywords:** 17 total, all with subreddit restrictions (SaaS, startups, entrepreneur, marketing, etc.)
+
+**Removed signals:** `"or "` and `"vs "` — were firing on 67% of posts
 
 ---
 
 ## 🔑 Key Technical Decisions
 
 - **ESM modules** throughout server (import/export not require)
-- **Lazy init pattern** — Dodo client reads env at request time (fixes ESM dotenv timing)
-- **Password reset tokens** — raw token in email, SHA-256 hash stored in DB
-- **Email verify tokens** — same pattern as password reset, 24hr expiry
-- **Competitor leads** — keywordType field on both Keyword and Lead models
-- **Conversations** — auto-created when DM sent via ReplyModal → reddit.js route
-- **Alerts throttle** — max 1 email per 30 minutes per user
-- **Scheduler** — 15min Reddit scan, hourly inbox check, 8AM daily digest
-- **CSV export** — server-side generation, respects all active filters, 5000 row cap
-- **Onboarding** — tracked via localStorage key `huntiq_onboarded`, not DB
-- **Pro price** — $29 launch price (update plans.js + Dodo product ID when raising to $49)
-- **AI models** — generateReply: claude-sonnet-4-6, analyzeLeadBatch + digestSummary: claude-haiku-4-5-20251001
-- **AI Subreddit Suggest** — Pro only, POST /api/keywords/suggest-subreddits, Claude Haiku
-- **Reddit scan quality** — unquoted search + relevance check (keyword in title/body OR 2+ intent signals) + min score 20
-- **Admin access** — checked by FOUNDER_EMAIL env var on backend, user.email check on frontend
+- **Lazy init pattern** — Dodo client reads env at request time
+- **Shared scoring utils** — `analyzeSentiment`, `detectIntentSignals`, `isNoise`, `ALL_INTENT_SIGNALS` exported from redditService.js, imported by hnService.js
+- **HN source** — uses HN Algolia API (free, no key), searches stories + comments
+- **HN objectID stored in `redditId` field** — no schema change needed, IDs don't collide (HN = numeric, Reddit = base36)
+- **Unique index** — `{userId, source, redditId}` — allows same post ID across different platforms
+- **MongoDB backfill** — existing leads got `source: 'reddit'` on session 2
+- **Campaign scan filter** — only active campaigns' keywords get scanned
+- **bodyWordMatch removed** — body requires full phrase, title allows word-by-word (short & deliberate)
+- **Admin access** — FOUNDER_EMAIL env var on backend, email check on frontend Sidebar
 - **Test account** — testuser@huntiq.io / Test@1234 (Starter plan, verified)
-- **Dodo webhook** — uses Standard Webhooks spec (webhook-id, webhook-signature, webhook-timestamp headers)
-- **api.huntiq.io** → Railway backend; **huntiq.io** → Vercel frontend
-- **dodopayments npm package** v2.27.0 used for SDK
 
 ---
 
@@ -288,6 +266,13 @@ VITE_API_URL=http://localhost:3000/api
 Start a new session and say:
 > "Read PROGRESS.md at /Users/vasanthakumar/Documents/new ai app/PROGRESS.md and continue building HuntIQ."
 
+**Next task:** Build Quora as 3rd lead source (`server/services/quoraService.js`)
+- Same pipeline as hnService.js
+- Scrape Quora search for each keyword
+- Add `source: 'quora'` to Lead model enum
+- Add Quora badge to LeadCard (green)
+- Add Quora option to source filter in Leads.jsx
+
 ---
 
-*Last updated: Session covering — Deployment (Railway + Vercel), huntiq.io live on Vercel, api.huntiq.io subdomain for Railway backend, billing switched from Stripe → Dodo Payments (Indian founder + global USD subscriptions), dodopayments npm package v2.27.0, User model updated to dodoCustomerId/dodoSubscriptionId/dodoProductId, plans.js uses dodoProductId getter, Checkout.jsx updated to "Secured by Dodo Payments", removed Anthropic Claude AI card from Settings Integrations*
+*Last updated: Session 2 — Lead quality fixes (noise signals, bodyWordMatch, min score 40), Hacker News added as 2nd source, MongoDB index fix, landing page multi-platform update, keyword cleanup (17 keywords all with subreddit filters), campaign scan filter for paused campaigns*
