@@ -44,7 +44,7 @@ const B2C_SIGNALS = [
   'looking for recommendations', 'need recommendations',
   'best for', 'which is better', 'which one should i',
   // Comparison
-  'vs ', 'versus', 'or ', 'comparison', 'compare', 'difference between',
+  'versus', 'comparison', 'compare', 'difference between',
   'pros and cons', 'pros cons',
   // Reviews
   'review', 'reviews', 'honest review', 'real review',
@@ -202,17 +202,19 @@ export async function scanKeyword(keyword, userId) {
       // Relevance: keyword MUST appear in title or body — intent signals alone are not enough
       const titlePhraseMatch = titleLower.includes(keywordLower);
       const bodyPhraseMatch = textLower.includes(keywordLower);
-      const titleWordMatch = keywordWords.length > 1 &&
-        keywordWords.every(w => titleLower.includes(w));
-      const bodyWordMatch = keywordWords.length > 1 &&
-        keywordWords.every(w => textLower.includes(w));
+      // Word-by-word match only allowed in title (short, deliberate text)
+      // Body word match removed — prevents "monitor subreddit" matching any post that
+      // mentions "subreddit" and "monitor" spread across 2000 chars of unrelated content
+      const meaningfulWords = keywordWords.filter(w => w.length > 3);
+      const titleWordMatch = meaningfulWords.length >= 2 &&
+        meaningfulWords.every(w => titleLower.includes(w));
 
-      // Keyword must actually appear — no more hasStrongIntent bypass
-      const isRelevant = titlePhraseMatch || bodyPhraseMatch || titleWordMatch || bodyWordMatch;
+      // Keyword must actually appear — full phrase in body, or all meaningful words in title
+      const isRelevant = titlePhraseMatch || bodyPhraseMatch || titleWordMatch;
       if (!isRelevant) continue;
 
-      // Require at least one intent signal AND minimum score
-      if (detectedSignals.length === 0 || intentScore < 25) continue;
+      // Require at least 2 intent signals AND minimum score of 40
+      if (detectedSignals.length < 2 || intentScore < 40) continue;
 
       const lead = await Lead.create({
         userId,
