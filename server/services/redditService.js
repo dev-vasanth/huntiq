@@ -3,17 +3,79 @@ import Lead from '../models/Lead.js';
 import Keyword from '../models/Keyword.js';
 import { checkAndSendAlerts } from './alertService.js';
 
-const INTENT_SIGNALS = [
-  'looking for', 'recommend', 'recommendations', 'best', 'should i', 'which one',
-  'anyone use', 'help me', 'need help', 'need a', 'want to', 'want a',
-  'buying', 'buy', 'purchase', 'worth it', 'alternative', 'alternatives',
-  'vs ', 'versus', 'comparison', 'compare', 'review', 'reviews',
-  'tried', 'trying', 'anyone tried', 'suggestions', 'suggest',
-  'how to', 'looking to', 'thinking about', 'considering',
+// ── B2B Intent Signals ─────────────────────────────────────────────────────
+const B2B_SIGNALS = [
+  // Tool/software discovery
+  'looking for a tool', 'need a tool', 'what tool', 'which tool',
+  'looking for software', 'need software', 'what software',
+  'looking for a platform', 'need a platform', 'what platform',
+  'looking for a solution', 'need a solution',
+  'recommend a tool', 'recommend software', 'recommend a platform',
+  'best tool for', 'best software for', 'best platform for',
+  'any tool', 'any software', 'any platform', 'any saas',
+  // Evaluation & buying
+  'we are evaluating', 'evaluating options', 'comparing tools',
+  'shortlisted', 'short list', 'due diligence',
+  'pricing', 'how much does', 'what does it cost', 'cost of',
+  'free trial', 'demo', 'book a demo', 'request a demo',
+  'enterprise plan', 'startup plan', 'team plan',
+  // Pain & switching
+  'switching from', 'moving away from', 'replacing', 'alternative to',
+  'tired of', 'frustrated with', 'problem with', 'issue with',
+  'our team needs', 'our company needs', 'my team needs',
+  'we need', 'we want', 'we are looking',
+  // ROI & results
+  'increased revenue', 'save time', 'automate', 'scale',
+  'worth the investment', 'roi', 'return on investment',
 ];
 
-const POSITIVE_WORDS = ['love', 'great', 'amazing', 'excellent', 'good', 'best', 'awesome', 'perfect', 'happy', 'recommend'];
-const NEGATIVE_WORDS = ['hate', 'terrible', 'awful', 'bad', 'worst', 'horrible', 'disappointed', 'broken', 'useless', 'scam'];
+// ── B2C Intent Signals ─────────────────────────────────────────────────────
+const B2C_SIGNALS = [
+  // Purchase intent
+  'want to buy', 'looking to buy', 'thinking of buying', 'should i buy',
+  'worth buying', 'is it worth', 'worth it',
+  'where to buy', 'best place to buy', 'how to get',
+  'just bought', 'just purchased', 'thinking about getting',
+  'anyone bought', 'has anyone tried', 'anyone use',
+  // Recommendations
+  'recommend', 'recommendations', 'suggest', 'suggestions',
+  'what do you use', 'what do you recommend', 'what should i use',
+  'looking for recommendations', 'need recommendations',
+  'best for', 'which is better', 'which one should i',
+  // Comparison
+  'vs ', 'versus', 'or ', 'comparison', 'compare', 'difference between',
+  'pros and cons', 'pros cons',
+  // Reviews
+  'review', 'reviews', 'honest review', 'real review',
+  'experience with', 'thoughts on', 'opinions on',
+  'anyone have experience',
+  // Discovery
+  'looking for', 'need help finding', 'help me find',
+  'any good', 'any decent', 'any reliable',
+];
+
+// ── General High-Intent Signals ────────────────────────────────────────────
+const GENERAL_SIGNALS = [
+  'need help', 'help me', 'how to', 'looking to',
+  'considering', 'thinking about', 'planning to',
+  'should i', 'which one', 'what is the best',
+  'tried', 'trying', 'alternatives', 'alternative',
+  'anyone know', 'does anyone', 'has anyone',
+];
+
+// ── Negative / Noise Filters ───────────────────────────────────────────────
+const NOISE_SIGNALS = [
+  'aitah', 'aita', 'tifu', 'eli5', 'relationship advice',
+  'my boyfriend', 'my girlfriend', 'my husband', 'my wife',
+  'my fiancé', 'my fiance', 'my ex', 'my crush',
+  'reddit moment', 'meme', 'funny', 'lol', 'lmao',
+  'unpopular opinion', 'hot take', 'change my mind',
+];
+
+const ALL_INTENT_SIGNALS = [...new Set([...B2B_SIGNALS, ...B2C_SIGNALS, ...GENERAL_SIGNALS])];
+
+const POSITIVE_WORDS = ['love', 'great', 'amazing', 'excellent', 'good', 'best', 'awesome', 'perfect', 'happy', 'recommend', 'fantastic', 'solid', 'reliable', 'helpful'];
+const NEGATIVE_WORDS = ['hate', 'terrible', 'awful', 'bad', 'worst', 'horrible', 'disappointed', 'broken', 'useless', 'scam', 'trash', 'garbage', 'overpriced', 'buggy'];
 
 function analyzeSentiment(text) {
   const lower = text.toLowerCase();
@@ -27,7 +89,12 @@ function analyzeSentiment(text) {
 
 function detectIntentSignals(text) {
   const lower = text.toLowerCase();
-  return INTENT_SIGNALS.filter(signal => lower.includes(signal));
+  return ALL_INTENT_SIGNALS.filter(signal => lower.includes(signal));
+}
+
+function isNoise(text) {
+  const lower = text.toLowerCase();
+  return NOISE_SIGNALS.some(signal => lower.includes(signal));
 }
 
 function calculateIntentScore(post, detectedSignals, keywordLower) {
@@ -118,6 +185,9 @@ export async function scanKeyword(keyword, userId) {
       if (exists) continue;
 
       const text = `${post.title} ${post.selftext || ''}`;
+
+      // Skip noise posts (AITAH, TIFU, relationship drama, memes etc.)
+      if (isNoise(text)) continue;
 
       const keywordLower = keyword.keyword.toLowerCase();
       const titleLower = post.title.toLowerCase();
