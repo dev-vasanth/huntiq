@@ -2,18 +2,18 @@ import { Link } from 'react-router-dom';
 import { Zap, Mail, BarChart2, MessageSquare, Search, CheckCircle, ArrowRight, Star, Megaphone, TrendingUp } from 'lucide-react';
 
 const FEATURES = [
-  { icon: Search, title: 'Keyword Monitoring', desc: 'Track any keyword across Reddit subreddits. Get instant alerts the moment someone posts with buying intent.', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+  { icon: Search, title: 'Multi-Platform Monitoring', desc: 'Track any keyword across Reddit and Hacker News. More sources coming — one place to catch every buyer signal.', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
   { icon: Zap, title: 'AI Intent Scoring', desc: 'Every lead scored 0–100 based on signals, engagement, and recency. Focus only on your hottest opportunities.', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
   { icon: MessageSquare, title: 'AI Reply Drafter', desc: 'Powered by Claude AI. Generate authentic, context-aware replies in any tone — professional, friendly, or direct.', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
   { icon: Megaphone, title: 'Campaigns', desc: 'Group keywords into campaigns with goals. Track performance per campaign and know exactly what drives results.', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
   { icon: Mail, title: 'Daily Digest Email', desc: 'A beautifully formatted email every morning with your top leads, AI-generated summary, and key insights.', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-  { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track lead volume, keyword performance, subreddit breakdown, and sentiment trends over time.', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track lead volume, keyword performance, source breakdown, and sentiment trends over time.', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
 ];
 
 const HOW_IT_WORKS = [
   { step: '01', title: 'Add Keywords', desc: 'Enter keywords that signal purchase intent for your product. Organize them into campaigns.', icon: Search },
-  { step: '02', title: 'We Scan Reddit', desc: 'HuntIQ scans Reddit every 15 minutes and AI-scores every matching post for intent.', icon: TrendingUp },
-  { step: '03', title: 'Review Leads', desc: 'Browse intent-scored leads, filter by score, and identify the hottest opportunities first.', icon: TrendingUp },
+  { step: '02', title: 'We Scan Everywhere', desc: 'HuntIQ scans Reddit & Hacker News continuously, AI-scoring every matching post for buying intent.', icon: TrendingUp },
+  { step: '03', title: 'Review Leads', desc: 'Browse intent-scored leads from all sources, filter by score or platform, spot the hottest opportunities first.', icon: TrendingUp },
   { step: '04', title: 'Draft & Reply', desc: 'Use AI to craft authentic replies or write your own. Track what converts and replicate it.', icon: MessageSquare },
 ];
 
@@ -26,7 +26,7 @@ const TESTIMONIALS = [
 const STATS = [
   { value: '50K+', label: 'Leads Discovered' },
   { value: '3.2x', label: 'Higher Reply Rate' },
-  { value: '15min', label: 'Scan Interval' },
+  { value: '2+', label: 'Platforms Monitored' },
   { value: '94%', label: 'Intent Accuracy' },
 ];
 
@@ -74,7 +74,7 @@ export default function Landing() {
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm mb-8 border"
             style={{ background: 'rgba(168,85,247,0.08)', borderColor: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>
             <Zap size={13} />
-            <span>AI-Powered Reddit Lead Intelligence</span>
+            <span>AI-Powered Multi-Platform Lead Intelligence</span>
           </div>
 
           {/* Headline */}
@@ -85,7 +85,7 @@ export default function Landing() {
           </h1>
 
           <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748b' }}>
-            HuntIQ scans Reddit 24/7 for people seeking solutions like yours.
+            HuntIQ scans Reddit, Hacker News, and more — 24/7 — for people actively seeking solutions like yours.
             Score their intent, draft AI replies, and convert conversations into customers.
           </p>
 
@@ -141,9 +141,9 @@ export default function Landing() {
               {/* Lead rows */}
               <div className="space-y-2">
                 {[
-                  { score: 94, color: '#10b981', bg: 'rgba(16,185,129,0.12)', sub: 'r/entrepreneur', tag: 'High Intent', tagColor: '#10b981', tagBg: 'rgba(16,185,129,0.1)', title: 'Looking for a CRM that integrates with Reddit — any recommendations?' },
-                  { score: 87, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', sub: 'r/SaaS', tag: 'High Intent', tagColor: '#a855f7', tagBg: 'rgba(168,85,247,0.1)', title: 'What tools do you use for customer outreach? Tried everything...' },
-                  { score: 71, color: '#f97316', bg: 'rgba(249,115,22,0.12)', sub: 'r/startups', tag: 'Medium Intent', tagColor: '#f97316', tagBg: 'rgba(249,115,22,0.1)', title: 'Should I buy X or build my own? Need honest opinions from founders' },
+                  { score: 94, color: '#10b981', bg: 'rgba(16,185,129,0.12)', sub: 'r/entrepreneur', subColor: '#a855f7', tag: 'High Intent', tagColor: '#10b981', tagBg: 'rgba(16,185,129,0.1)', title: 'Looking for a Reddit monitoring tool — any recommendations?' },
+                  { score: 91, color: '#10b981', bg: 'rgba(16,185,129,0.12)', sub: 'Ask HN', subColor: '#ff6600', tag: 'High Intent', tagColor: '#10b981', tagBg: 'rgba(16,185,129,0.1)', title: 'Ask HN: What do you use to find customers on Reddit or forums?' },
+                  { score: 78, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', sub: 'r/SaaS', subColor: '#a855f7', tag: 'Medium Intent', tagColor: '#a855f7', tagBg: 'rgba(168,85,247,0.1)', title: 'Switching from F5Bot — need something smarter with intent scoring' },
                 ].map((lead, i) => (
                   <div key={i} className="rounded-xl p-3.5 flex items-center gap-3"
                     style={{ background: '#12121f', border: '1px solid #1a1a2e' }}>
@@ -152,7 +152,7 @@ export default function Landing() {
                       {lead.score}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs mb-0.5" style={{ color: lead.color }}>{lead.sub}</div>
+                      <div className="text-xs mb-0.5 font-semibold" style={{ color: lead.subColor }}>{lead.sub}</div>
                       <div className="text-sm text-slate-300 truncate">{lead.title}</div>
                     </div>
                     <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
@@ -211,9 +211,9 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: '#a855f7' }}>Features</p>
-            <h2 className="text-4xl font-bold mb-4">Everything you need to dominate Reddit</h2>
+            <h2 className="text-4xl font-bold mb-4">Everything you need to find and convert high-intent leads</h2>
             <p className="max-w-xl mx-auto" style={{ color: '#475569' }}>
-              A complete toolkit for discovering, qualifying, and engaging with high-intent Reddit prospects.
+              A complete toolkit for discovering, qualifying, and engaging with buyers across Reddit, Hacker News, and beyond.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -370,7 +370,7 @@ export default function Landing() {
         <div className="max-w-2xl mx-auto text-center relative z-10">
           <h2 className="text-5xl font-black mb-5">Start finding leads <span className="text-gradient">today</span></h2>
           <p className="text-lg mb-10" style={{ color: '#475569' }}>
-            Join hundreds of founders who use HuntIQ to turn Reddit conversations into customers.
+            Join hundreds of founders who use HuntIQ to turn online conversations into customers — across Reddit, Hacker News, and more.
           </p>
           <Link to="/register" className="btn-primary inline-flex items-center gap-2 text-base px-9 py-4 glow-brand">
             Get Started Free
