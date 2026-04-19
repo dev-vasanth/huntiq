@@ -1,4 +1,4 @@
-import { ExternalLink, MessageSquare, Bookmark, X, ArrowUp, Clock, Crosshair } from 'lucide-react';
+import { ExternalLink, MessageSquare, Bookmark, X, ArrowUp, Clock, Crosshair, FileText, Link2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 function IntentBadge({ score }) {
@@ -34,6 +34,16 @@ export default function LeadCard({ lead, onReply, onStatus }) {
             <span className="text-slate-600">·</span>
             <SentimentDot sentiment={lead.sentiment} />
             <IntentBadge score={score} />
+            {/* Post type pill — discussion vs link */}
+            {lead.postType === 'discussion' ? (
+              <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-400 border border-slate-600/50" title="Text discussion post">
+                <FileText size={10} /> Discussion
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-400 border border-slate-600/50" title="Link post">
+                <Link2 size={10} /> Link
+              </span>
+            )}
             {lead.keywordText && (
               <span className="badge bg-slate-700 text-slate-400 border-slate-600">{lead.keywordText}</span>
             )}

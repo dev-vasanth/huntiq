@@ -98,6 +98,45 @@ function isNoise(text) {
   return NOISE_SIGNALS.some(signal => lower.includes(signal));
 }
 
+// ── Valid Conversation Check ───────────────────────────────────────────────
+// Filters out mod posts, announcements, deleted content, spam cross-posts,
+// link posts with no discussion, and self-promo without engagement.
+function isValidConversation(post) {
+  // Skip bot/deleted/mod authors
+  const author = post.author || '';
+  if (!author || author === '[deleted]' || author === 'AutoModerator') return false;
+
+  // Skip stickied mod posts (weekly threads, announcements, rule posts)
+  if (post.stickied) return false;
+
+  // Skip posts marked as mod posts (distinguished)
+  if (post.distinguished === 'moderator') return false;
+
+  // Skip deleted/removed content
+  const body = post.selftext || '';
+  if (body === '[deleted]' || body === '[removed]') return false;
+
+  // Skip heavily downvoted — likely spam or off-topic
+  if ((post.score || post.ups || 0) < -5) return false;
+
+  // Skip link posts (not self posts) with zero discussion — no conversation happening
+  if (!post.is_self && (post.num_comments || 0) < 2) return false;
+
+  // Self posts must have either a meaningful body OR a clear question/request in title
+  // Catches spam posts, self-promo announcements, and "day 243 of posting" journals
+  if (post.is_self) {
+    const hasBody = body.trim().length > 75;
+    const titleLower = post.title.toLowerCase();
+    const isQuestion = post.title.includes('?');
+    const isRequest = /^(how|what|which|where|any|looking|need|recommend|help|should|can|does|is there|are there)/i.test(post.title);
+    const isSeeking = titleLower.includes('looking for') || titleLower.includes('need a') ||
+                      titleLower.includes('want to') || titleLower.includes('help me');
+    if (!hasBody && !isQuestion && !isRequest && !isSeeking) return false;
+  }
+
+  return true;
+}
+
 function calculateIntentScore(post, detectedSignals, keywordLower) {
   let score = 0;
 
@@ -187,6 +226,9 @@ export async function scanKeyword(keyword, userId) {
 
       const text = `${post.title} ${post.selftext || ''}`;
 
+      // Skip non-conversation posts: mod announcements, stickied, deleted, spam cross-posts
+      if (!isValidConversation(post)) continue;
+
       // Skip noise posts (AITAH, TIFU, relationship drama, memes etc.)
       if (isNoise(text)) continue;
 
@@ -234,6 +276,8 @@ export async function scanKeyword(keyword, userId) {
         intentScore,
         sentiment,
         intentSignals: detectedSignals,
+        postType: post.is_self ? 'discussion' : 'link',
+        hasBody: (post.selftext || '').trim().length > 75,
       });
 
       newLeadIds.push(lead._id);

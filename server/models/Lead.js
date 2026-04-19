@@ -17,6 +17,8 @@ const leadSchema = new mongoose.Schema({
   upvotes: { type: Number, default: 0 },
   numComments: { type: Number, default: 0 },
   redditCreatedAt: { type: Date },
+  postType: { type: String, enum: ['discussion', 'link'], default: 'discussion' },
+  hasBody: { type: Boolean, default: false }, // true = post has meaningful text body
 
   // Scoring & Analysis
   intentScore: { type: Number, default: 0, min: 0, max: 100 },
