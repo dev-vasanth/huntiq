@@ -1,12 +1,13 @@
 import Lead from '../models/Lead.js';
 import Keyword from '../models/Keyword.js';
 import { scanKeyword } from '../services/redditService.js';
+import { scanKeywordHN } from '../services/hnService.js';
 
 export const getLeads = async (req, res) => {
   try {
     const {
       page = 1, limit = 20, status, keyword, subreddit,
-      sortBy = 'createdAt', sortOrder = 'desc', minScore = 0, keywordType, since, campaignId
+      sortBy = 'createdAt', sortOrder = 'desc', minScore = 0, keywordType, since, campaignId, source
     } = req.query;
 
     const filter = { userId: req.user._id };
@@ -16,6 +17,7 @@ export const getLeads = async (req, res) => {
     if (parseInt(minScore) > 0) filter.intentScore = { $gte: parseInt(minScore) };
     if (keywordType && (keywordType === 'own' || keywordType === 'competitor')) filter.keywordType = keywordType;
     if (since) filter.createdAt = { $gte: new Date(since) };
+    if (source && ['reddit', 'hackernews'].includes(source)) filter.source = source;
     if (campaignId) {
       const campaignKeywords = await Keyword.find({ userId: req.user._id, campaignId }).select('_id');
       filter.keywordId = { $in: campaignKeywords.map(k => k._id) };
@@ -115,13 +117,24 @@ export const scanNow = async (req, res) => {
       return res.status(400).json({ message: 'No active keywords to scan' });
     }
 
-    let totalNew = 0;
+    let redditNew = 0;
+    let hnNew = 0;
+
     for (const kw of keywords) {
-      const newLeads = await scanKeyword(kw, req.user._id);
-      totalNew += newLeads;
+      const [r, h] = await Promise.all([
+        scanKeyword(kw, req.user._id),
+        scanKeywordHN(kw, req.user._id),
+      ]);
+      redditNew += r;
+      hnNew += h;
     }
 
-    res.json({ message: `Scan complete. Found ${totalNew} new leads.`, newLeads: totalNew });
+    const totalNew = redditNew + hnNew;
+    res.json({
+      message: `Scan complete. Found ${totalNew} new leads (${redditNew} Reddit, ${hnNew} HN).`,
+      newLeads: totalNew,
+      breakdown: { reddit: redditNew, hackernews: hnNew },
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

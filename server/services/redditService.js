@@ -73,12 +73,12 @@ const NOISE_SIGNALS = [
   'unpopular opinion', 'hot take', 'change my mind',
 ];
 
-const ALL_INTENT_SIGNALS = [...new Set([...B2B_SIGNALS, ...B2C_SIGNALS, ...GENERAL_SIGNALS])];
+export const ALL_INTENT_SIGNALS = [...new Set([...B2B_SIGNALS, ...B2C_SIGNALS, ...GENERAL_SIGNALS])];
 
 const POSITIVE_WORDS = ['love', 'great', 'amazing', 'excellent', 'good', 'best', 'awesome', 'perfect', 'happy', 'recommend', 'fantastic', 'solid', 'reliable', 'helpful'];
 const NEGATIVE_WORDS = ['hate', 'terrible', 'awful', 'bad', 'worst', 'horrible', 'disappointed', 'broken', 'useless', 'scam', 'trash', 'garbage', 'overpriced', 'buggy'];
 
-function analyzeSentiment(text) {
+export function analyzeSentiment(text) {
   const lower = text.toLowerCase();
   let score = 0;
   POSITIVE_WORDS.forEach(w => { if (lower.includes(w)) score++; });
@@ -88,12 +88,12 @@ function analyzeSentiment(text) {
   return 'neutral';
 }
 
-function detectIntentSignals(text) {
+export function detectIntentSignals(text) {
   const lower = text.toLowerCase();
   return ALL_INTENT_SIGNALS.filter(signal => lower.includes(signal));
 }
 
-function isNoise(text) {
+export function isNoise(text) {
   const lower = text.toLowerCase();
   return NOISE_SIGNALS.some(signal => lower.includes(signal));
 }

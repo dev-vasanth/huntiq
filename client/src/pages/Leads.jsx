@@ -35,7 +35,7 @@ export default function Leads() {
 
   const [filters, setFilters] = useState({
     status: 'all', keyword: '', sortBy: 'intentScore',
-    sortOrder: 'desc', minScore: 0, page: 1, keywordType: '', campaignId: '',
+    sortOrder: 'desc', minScore: 0, page: 1, keywordType: '', campaignId: '', source: '',
   });
   const [exporting, setExporting] = useState(false);
 
@@ -75,6 +75,7 @@ export default function Leads() {
         minScore: filters.minScore,
         keywordType: filters.keywordType,
         campaignId: filters.campaignId,
+        source: filters.source,
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
       };
@@ -174,6 +175,15 @@ export default function Leads() {
             <option value="">All Types</option>
             <option value="own">Own Brand</option>
             <option value="competitor">Competitor</option>
+          </select>
+
+          <select
+            value={filters.source}
+            onChange={e => setFilter('source', e.target.value)}
+            className="input w-40 text-sm">
+            <option value="">All Sources</option>
+            <option value="reddit">Reddit</option>
+            <option value="hackernews">Hacker News</option>
           </select>
 
           <select

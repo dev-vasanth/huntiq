@@ -12,6 +12,26 @@ function SentimentDot({ sentiment }) {
   return <span className={`w-2 h-2 rounded-full ${colors[sentiment] || 'bg-slate-500'} shrink-0`} title={sentiment} />;
 }
 
+// ── Source badge ─────────────────────────────────────────────────────────────
+function SourceBadge({ source, subreddit }) {
+  if (source === 'hackernews') {
+    const label = subreddit === 'ask_hn' ? 'Ask HN'
+      : subreddit === 'show_hn' ? 'Show HN'
+      : 'HN';
+    return (
+      <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
+        style={{ background: 'rgba(255,102,0,0.15)', color: '#ff6600', border: '1px solid rgba(255,102,0,0.3)' }}>
+        <span className="font-black">Y</span> {label}
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs font-semibold text-violet-400">
+      r/{subreddit}
+    </span>
+  );
+}
+
 export default function LeadCard({ lead, onReply, onStatus }) {
   const score = lead.intentScore || 0;
   const scoreColor = score >= 70 ? 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30'
@@ -30,14 +50,18 @@ export default function LeadCard({ lead, onReply, onStatus }) {
         <div className="flex-1 min-w-0">
           {/* Meta row */}
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="text-xs font-semibold text-violet-400">r/{lead.subreddit}</span>
+            <SourceBadge source={lead.source || 'reddit'} subreddit={lead.subreddit} />
             <span className="text-slate-600">·</span>
             <SentimentDot sentiment={lead.sentiment} />
             <IntentBadge score={score} />
-            {/* Post type pill — discussion vs link */}
+            {/* Post type pill — discussion / link / comment */}
             {lead.postType === 'discussion' ? (
               <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-400 border border-slate-600/50" title="Text discussion post">
                 <FileText size={10} /> Discussion
+              </span>
+            ) : lead.postType === 'comment' ? (
+              <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-400 border border-slate-600/50" title="Comment thread">
+                <MessageSquare size={10} /> Comment
               </span>
             ) : (
               <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-400 border border-slate-600/50" title="Link post">

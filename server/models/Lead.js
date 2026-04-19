@@ -6,7 +6,10 @@ const leadSchema = new mongoose.Schema({
   keywordText: { type: String },
   keywordType: { type: String, enum: ['own', 'competitor'], default: 'own' },
 
-  // Reddit post data
+  // Source platform
+  source: { type: String, enum: ['reddit', 'hackernews'], default: 'reddit' },
+
+  // Source post identifier (Reddit post ID or HN objectID)
   redditId: { type: String, required: true },
   title: { type: String, required: true },
   body: { type: String, default: '' },
@@ -37,7 +40,8 @@ const leadSchema = new mongoose.Schema({
   replyContent: { type: String },
 }, { timestamps: true });
 
-leadSchema.index({ userId: 1, redditId: 1 }, { unique: true });
+leadSchema.index({ userId: 1, source: 1, redditId: 1 }, { unique: true });
+leadSchema.index({ userId: 1, source: 1 });
 leadSchema.index({ userId: 1, status: 1 });
 leadSchema.index({ userId: 1, intentScore: -1 });
 leadSchema.index({ userId: 1, createdAt: -1 });
